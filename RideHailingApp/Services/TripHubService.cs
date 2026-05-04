@@ -10,6 +10,7 @@ namespace RideHailingApp.Services
         public event Action<double, double>? LocationUpdated;
         public event Action<string, string>? TripStatusChanged;
         public event Action<int, string, string>? NewTripRequest;  // tripId, pickup, dropoff
+        public event Action<string, string>? PoolingNotification;   // poolingType, message
 
         public HubConnectionState State => _connection?.State ?? HubConnectionState.Disconnected;
 
@@ -49,6 +50,11 @@ namespace RideHailingApp.Services
             _connection.On<int, string, string>("OnNewTripRequest", (id, pickup, dropoff) =>
             {
                 MainThread.BeginInvokeOnMainThread(() => NewTripRequest?.Invoke(id, pickup, dropoff));
+            });
+
+            _connection.On<string, string>("OnPoolingNotification", (poolingType, message) =>
+            {
+                MainThread.BeginInvokeOnMainThread(() => PoolingNotification?.Invoke(poolingType, message));
             });
 
             await _connection.StartAsync();

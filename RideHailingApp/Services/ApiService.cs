@@ -223,5 +223,40 @@ namespace RideHailingApp.Services
             if (result.IsReadOnlyMode) return result.ErrorMessage ?? "Server ở chế độ Read-Only.";
             return result.ErrorMessage ?? "Lỗi không xác định.";
         }
+
+        // ───────────────── Pooling ─────────────────
+
+        // Tìm cuốc có thể ghép với cuốc chính
+        public Task<ApiResult<List<PoolingCandidateItem>>> GetPoolCandidatesAsync(
+            int tripId,
+            double mainPickupLat,
+            double mainPickupLon,
+            double mainDropoffLat,
+            double mainDropoffLon)
+        {
+            string url = $"/api/trips/pool-candidates/{tripId}" +
+                $"?mainPickupLat={mainPickupLat}" +
+                $"&mainPickupLon={mainPickupLon}" +
+                $"&mainDropoffLat={mainDropoffLat}" +
+                $"&mainDropoffLon={mainDropoffLon}";
+
+            var req = BuildRequest(HttpMethod.Get, url);
+            return SendAsync<List<PoolingCandidateItem>>(req);
+        }
+
+        // Ghép 2 cuốc lại
+        public Task<ApiResult<object>> PoolTripsAsync(int mainTripId, int secondaryTripId)
+        {
+            var body = new { MainTripID = mainTripId, SecondaryTripID = secondaryTripId };
+            var req = BuildRequest(HttpMethod.Post, "/api/trips/pool", body);
+            return SendAsync<object>(req);
+        }
+
+        // Lấy thông tin cuốc ghép
+        public Task<ApiResult<PooledTripInfo>> GetPooledTripInfoAsync(int tripId)
+        {
+            var req = BuildRequest(HttpMethod.Get, $"/api/trips/pooled/{tripId}");
+            return SendAsync<PooledTripInfo>(req);
+        }
     }
 }

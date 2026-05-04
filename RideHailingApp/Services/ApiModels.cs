@@ -104,4 +104,40 @@ namespace RideHailingApp.Services
         public static ApiResult<T> ReadOnly(string msg) => new() { IsReadOnlyMode = true, ErrorMessage = msg };
         public static ApiResult<T> Fail(string msg) => new() { ErrorMessage = msg };
     }
+
+    // ===== Pooling Models =====
+    public class PoolingCandidateItem
+    {
+        public int TripID { get; set; }
+        public int UserID { get; set; }
+        public string PickupLocation { get; set; } = "";
+        public string DropoffLocation { get; set; } = "";
+        public double PickupDistance { get; set; }
+        public double DropoffDistance { get; set; }
+        public int MinutesOld { get; set; }
+        public DateTime? CreatedAt { get; set; }
+
+        // Helper properties for UI
+        public string DisplayDistance => $"{Math.Round(Math.Max(PickupDistance, DropoffDistance), 2)} km";
+        public string DisplayPickup => PickupLocation?.Length > 30 
+            ? PickupLocation[..27] + "..." 
+            : PickupLocation ?? "";
+        public string DisplayDropoff => DropoffLocation?.Length > 30 
+            ? DropoffLocation[..27] + "..." 
+            : DropoffLocation ?? "";
+    }
+
+    public class PooledTripInfo
+    {
+        public int MainTripID { get; set; }
+        public int SecondaryTripID { get; set; }
+        public int? MainUserID { get; set; }
+        public int? SecondaryUserID { get; set; }
+        public string MainPickup { get; set; } = "";
+        public string MainDropoff { get; set; } = "";
+        public string SecondaryPickup { get; set; } = "";
+        public string SecondaryDropoff { get; set; } = "";
+        public int CurrentPassengers { get; set; } = 2;
+        public DateTime? PooledAt { get; set; }
+    }
 }

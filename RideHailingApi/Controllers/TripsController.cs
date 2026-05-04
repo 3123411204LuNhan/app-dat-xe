@@ -5,6 +5,7 @@ using RideHailingApi.Data;
 using RideHailingApi.Hubs;
 using RideHailingApi.Middleware;
 using RideHailingApi.Models;
+using RideHailingApi.Services;
 namespace RideHailingApi.Controllers
 {
     [ApiController]
@@ -281,6 +282,221 @@ namespace RideHailingApi.Controllers
                         ? $"Server chính ({region}) KHÔNG khả dụng — đang dùng Replica."
                         : $"Cả Primary lẫn Replica ({region}) đều không phản hồi!"
             });
+        }
+
+        // ===== POOLING ENDPOINTS =====
+
+        // GET /api/trips/pool-candidates/{tripId}?mainPickupLat=10.7605&mainPickupLon=106.7035&mainDropoffLat=10.8&mainDropoffLon=106.8
+        // Tìm danh sách cuốc có thể ghép với cuốc chính (theo tiêu chí khoảng cách, thời gian, loại xe)
+        [Authorize]
+        [HttpGet("pool-candidates/{tripId:int}")]
+        public IActionResult GetPoolCandidates(
+            int tripId,
+            [FromQuery] double mainPickupLat,
+            [FromQuery] double mainPickupLon,
+            [FromQuery] double mainDropoffLat,
+            [FromQuery] double mainDropoffLon)
+        {
+            string region = HttpContext.GetRegion();
+
+            try
+            {
+                // Lấy thông tin trip chính
+                var mainTripTable = _db.ExecuteReader(region,
+                    "SELECT TripID, PickupLocation, DropoffLocation, CreatedAt FROM Trips WHERE TripID=@tripId",
+                    cmd => cmd.Parameters.AddWithValue("@tripId", tripId));
+
+                if (mainTripTable.Rows.Count == 0)
+                    return NotFound(new { error = "Trip không tồn tại." });
+
+                var mainTripRow = mainTripTable.Rows[0];
+                DateTime mainCreatedAt = mainTripRow["CreatedAt"] is DBNull ? DateTime.Now : (DateTime)mainTripRow["CreatedAt"];
+
+                // Lấy danh sách các trip Pending khác (cùng region, khác userID, không phải trip chính)
+                var candidatesTable = _db.ExecuteReader(region,
+                    "SELECT TripID, UserID, PickupLocation, DropoffLocation, CreatedAt " +
+                    "FROM Trips " +
+                    "WHERE Status='Pending' AND Region=@region AND TripID!=@tripId " +
+                    "ORDER BY CreatedAt DESC LIMIT 50",
+                    cmd =>
+                    {
+                        cmd.Parameters.AddWithValue("@region", region);
+                        cmd.Parameters.AddWithValue("@tripId", tripId);
+                    });
+
+                var candidates = new List<PoolingCandidateItem>();
+
+                const double MaxPickupDistanceKm = 1.0;
+                const double MaxDropoffDistanceKm = 1.0;
+                const int MaxMinutesOld = 5;
+
+                foreach (System.Data.DataRow row in candidatesTable.Rows)
+                {
+                    int candidateTripId = (int)row["TripID"];
+                    DateTime candidateCreatedAt = row["CreatedAt"] is DBNull ? DateTime.Now : (DateTime)row["CreatedAt"];
+
+                    // Kiểm tra thời gian (cuốc phải tạo trong 5 phút gần nhất)
+                    int minutesOld = (int)(mainCreatedAt - candidateCreatedAt).TotalMinutes;
+                    if (minutesOld < 0 || minutesOld > MaxMinutesOld)
+                        continue;
+
+                    // Trong thực tế, cần parse GPS từ PickupLocation/DropoffLocation
+                    // Hiện tại giả sử format là: "10.7605,106.7035" hoặc tương tự
+                    string pickupStr = row["PickupLocation"].ToString() ?? "";
+                    string dropoffStr = row["DropoffLocation"].ToString() ?? "";
+
+                    if (!TryParseCoordinates(pickupStr, out double candPickupLat, out double candPickupLon))
+                        continue;
+                    if (!TryParseCoordinates(dropoffStr, out double candDropoffLat, out double candDropoffLon))
+                        continue;
+
+                    // Tính khoảng cách
+                    double pickupDist = GeoDistanceHelper.CalculateDistance(
+                        mainPickupLat, mainPickupLon, candPickupLat, candPickupLon);
+                    double dropoffDist = GeoDistanceHelper.CalculateDistance(
+                        mainDropoffLat, mainDropoffLon, candDropoffLat, candDropoffLon);
+
+                    // Kiểm tra tiêu chí khoảng cách
+                    if (pickupDist <= MaxPickupDistanceKm && dropoffDist <= MaxDropoffDistanceKm)
+                    {
+                        candidates.Add(new PoolingCandidateItem
+                        {
+                            TripID = candidateTripId,
+                            UserID = (int)row["UserID"],
+                            PickupLocation = pickupStr,
+                            DropoffLocation = dropoffStr,
+                            PickupDistance = pickupDist,
+                            DropoffDistance = dropoffDist,
+                            MinutesOld = minutesOld,
+                            CreatedAt = candidateCreatedAt
+                        });
+                    }
+                }
+
+                return Ok(candidates);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        // POST /api/trips/pool — ghép 2 cuốc lại
+        [Authorize]
+        [HttpPost("pool")]
+        public async Task<IActionResult> PoolTrips([FromBody] PoolTripsRequest req)
+        {
+            string region = HttpContext.GetRegion();
+
+            if (req.MainTripID == req.SecondaryTripID)
+                return BadRequest(new { error = "Không thể ghép 1 cuốc với chính nó." });
+
+            try
+            {
+                // Cập nhật PooledWithTripID cho cả 2 cuốc
+                int rows = _db.ExecuteNonQuery(region,
+                    "UPDATE Trips SET PooledWithTripID=@secondary WHERE TripID=@main AND Status='Pending'; " +
+                    "UPDATE Trips SET PooledWithTripID=@main WHERE TripID=@secondary AND Status='Pending';",
+                    cmd =>
+                    {
+                        cmd.Parameters.AddWithValue("@main", req.MainTripID);
+                        cmd.Parameters.AddWithValue("@secondary", req.SecondaryTripID);
+                    });
+
+                if (rows < 2)
+                    return Conflict(new { error = "Một hoặc cả 2 cuốc đã không còn có sẵn để ghép." });
+
+                // Thông báo cho cả 2 hành khách
+                await _hub.Clients.Group($"Trip_{req.MainTripID}")
+                    .SendAsync("OnPoolingNotification", "pooled",
+                        $"Chuyến của bạn đã được ghép với một cuốc khác để tiết kiệm chi phí!");
+
+                await _hub.Clients.Group($"Trip_{req.SecondaryTripID}")
+                    .SendAsync("OnPoolingNotification", "pooled",
+                        $"Chuyến của bạn đã được ghép với một cuốc khác để tiết kiệm chi phí!");
+
+                return Ok(new
+                {
+                    success = true,
+                    mainTripId = req.MainTripID,
+                    secondaryTripId = req.SecondaryTripID,
+                    message = "Ghép cuốc thành công!"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        // GET /api/trips/pooled/{tripId} — lấy thông tin cuốc ghép
+        [Authorize]
+        [HttpGet("pooled/{tripId:int}")]
+        public IActionResult GetPooledTripInfo(int tripId)
+        {
+            string region = HttpContext.GetRegion();
+
+            try
+            {
+                // Lấy trip chính
+                var mainTable = _db.ExecuteReader(region,
+                    "SELECT TripID, UserID, PickupLocation, DropoffLocation, PooledWithTripID FROM Trips WHERE TripID=@tripId",
+                    cmd => cmd.Parameters.AddWithValue("@tripId", tripId));
+
+                if (mainTable.Rows.Count == 0)
+                    return NotFound(new { error = "Trip không tồn tại." });
+
+                var mainRow = mainTable.Rows[0];
+                int? pooledTripId = mainRow["PooledWithTripID"] is DBNull ? null : (int?)mainRow["PooledWithTripID"];
+
+                if (!pooledTripId.HasValue)
+                    return Ok(new { hasPooling = false });
+
+                // Lấy trip ghép
+                var pooledTable = _db.ExecuteReader(region,
+                    "SELECT TripID, UserID, PickupLocation, DropoffLocation FROM Trips WHERE TripID=@tripId",
+                    cmd => cmd.Parameters.AddWithValue("@tripId", pooledTripId.Value));
+
+                if (pooledTable.Rows.Count == 0)
+                    return Ok(new { hasPooling = false });
+
+                var pooledRow = pooledTable.Rows[0];
+
+                return Ok(new PooledTripInfo
+                {
+                    MainTripID = (int)mainRow["TripID"],
+                    SecondaryTripID = (int)pooledRow["TripID"],
+                    MainUserID = (int)mainRow["UserID"],
+                    SecondaryUserID = (int)pooledRow["UserID"],
+                    MainPickup = mainRow["PickupLocation"].ToString() ?? "",
+                    MainDropoff = mainRow["DropoffLocation"].ToString() ?? "",
+                    SecondaryPickup = pooledRow["PickupLocation"].ToString() ?? "",
+                    SecondaryDropoff = pooledRow["DropoffLocation"].ToString() ?? "",
+                    CurrentPassengers = 2,
+                    PooledAt = DateTime.Now
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        // Helper: Parse "lat,lon" string thành double
+        private static bool TryParseCoordinates(string coordString, out double lat, out double lon)
+        {
+            lat = 0;
+            lon = 0;
+
+            if (string.IsNullOrEmpty(coordString))
+                return false;
+
+            var parts = coordString.Split(',');
+            if (parts.Length != 2)
+                return false;
+
+            return double.TryParse(parts[0].Trim(), out lat) &&
+                   double.TryParse(parts[1].Trim(), out lon);
         }
     }
 }
