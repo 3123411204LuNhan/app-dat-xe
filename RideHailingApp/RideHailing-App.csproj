@@ -64,6 +64,15 @@
 	  <MauiXaml Update="DriverHomePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="PoolingTabView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
+	<!-- Exclude the old draft file to avoid duplicate class conflict -->
+	<ItemGroup>
+	  <MauiXaml Remove="DriverHomePage_Updated.xaml" />
+	  <None Include="DriverHomePage_Updated.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>

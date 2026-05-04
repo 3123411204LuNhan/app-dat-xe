@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "xlc7wCKBYiw=",
+  "dgSpecHash": "3xTmwEEjmCI=",
   "success": true,
-  "projectFilePath": "C:\\Users\\lhnhan\\source\\repos\\app-dat-xe\\app-dat-xe\\RideHailingApi\\RideHailingApi.csproj",
+  "projectFilePath": "D:\\CoSoDuLieuPhanTan\\app-dat-xe\\ridehailingapi\\RideHailingApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\lhnhan\\.nuget\\packages\\bcrypt.net-next\\4.0.2\\bcrypt.net-next.4.0.2.nupkg.sha512",
     "C:\\Users\\lhnhan\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",

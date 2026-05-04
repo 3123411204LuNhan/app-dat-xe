@@ -48,6 +48,23 @@ public partial class DriverHomePage : ContentPage
         _hub.NewTripRequest -= OnNewTripRequest;
     }
 
+    // ───────────────── Tab Switching ─────────────────
+
+    private void OnTab1Clicked(object sender, EventArgs e) => SwitchTab(1);
+    private void OnTab2Clicked(object sender, EventArgs e) => SwitchTab(2);
+
+    private void SwitchTab(int tab)
+    {
+        Tab1Content.IsVisible = tab == 1;
+        Tab2Content.IsVisible = tab == 2;
+        Tab1Button.TextColor      = tab == 1 ? Color.FromArgb("#FFFFFF") : Color.FromArgb("#4A5068");
+        Tab2Button.TextColor      = tab == 2 ? Color.FromArgb("#FFFFFF") : Color.FromArgb("#4A5068");
+        Tab1Button.FontAttributes = tab == 1 ? FontAttributes.Bold : FontAttributes.None;
+        Tab2Button.FontAttributes = tab == 2 ? FontAttributes.Bold : FontAttributes.None;
+        Tab1Indicator.BackgroundColor = tab == 1 ? Color.FromArgb("#00C853") : Colors.Transparent;
+        Tab2Indicator.BackgroundColor = tab == 2 ? Color.FromArgb("#00C853") : Colors.Transparent;
+    }
+
     // ───────────────── Online / Offline Toggle ─────────────────
 
     private async void OnGoOnlineClicked(object sender, EventArgs e)
@@ -200,6 +217,13 @@ public partial class DriverHomePage : ContentPage
             ActiveTripInfoLabel.Text = $"#{tripId}  {pickup}  →  {dropoff}";
             ActiveTripCard.IsVisible = true;
             SetTripSubState(TripSubState.Accepted);
+
+            // Initialize pooling tab with GPS coordinates of the accepted trip
+            if (TryParseGpsCoords(pickup,  out double pLat, out double pLon) &&
+                TryParseGpsCoords(dropoff, out double dLat, out double dLon))
+            {
+                PoolingTab.Initialize(tripId, pLat, pLon, dLat, dLon);
+            }
 
             // Start GPS loop
             _gpsLoopCts = new CancellationTokenSource();
@@ -383,4 +407,16 @@ public partial class DriverHomePage : ContentPage
     }
 
     private void HideError() => ErrorBanner.IsVisible = false;
+
+    private static bool TryParseGpsCoords(string location, out double lat, out double lon)
+    {
+        lat = lon = 0;
+        if (string.IsNullOrEmpty(location)) return false;
+        var parts = location.Split(',');
+        if (parts.Length != 2) return false;
+        return double.TryParse(parts[0].Trim(), System.Globalization.NumberStyles.Float,
+                   System.Globalization.CultureInfo.InvariantCulture, out lat) &&
+               double.TryParse(parts[1].Trim(), System.Globalization.NumberStyles.Float,
+                   System.Globalization.CultureInfo.InvariantCulture, out lon);
+    }
 }

@@ -9,9 +9,8 @@ namespace RideHailingApp.Services
 
         public event Action<double, double>? LocationUpdated;
         public event Action<string, string>? TripStatusChanged;
-        public event Action<int, string, string>? NewTripRequest;   // tripId, pickup, dropoff
-        public event Action<int, string, string, string>? DriverAssigned; // tripId, driverName, plate, vehicleType
-        public event Action<int, string>? TripCancelled;            // tripId, reason
+        public event Action<int, string, string>? NewTripRequest;  // tripId, pickup, dropoff
+        public event Action<string, string>? PoolingNotification;   // poolingType, message
 
         public event Action<Exception?>? Reconnecting;
         public event Action<string?>? Reconnected;
@@ -72,6 +71,11 @@ namespace RideHailingApp.Services
                 MainThread.BeginInvokeOnMainThread(() => Closed?.Invoke(ex));
                 return Task.CompletedTask;
             };
+
+            _connection.On<string, string>("OnPoolingNotification", (poolingType, message) =>
+            {
+                MainThread.BeginInvokeOnMainThread(() => PoolingNotification?.Invoke(poolingType, message));
+            });
 
             await _connection.StartAsync();
         }

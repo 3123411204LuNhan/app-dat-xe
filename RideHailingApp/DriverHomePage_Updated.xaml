@@ -1,0 +1,316 @@
+ <?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:services="clr-namespace:RideHailingApp.Services"
+    x:Class="RideHailingApp.DriverHomePage"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="#0F1117"
+    Title="Nhận cuốc">
+
+    <VerticalStackLayout>
+
+        <!-- ===== HEADER (outside tabs) ===== -->
+        <VerticalStackLayout Padding="20,48,20,0" Spacing="16">
+
+            <!-- HEADER CONTENT -->
+            <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
+                <Border BackgroundColor="#00C853"
+                        StrokeThickness="0"
+                        WidthRequest="52" HeightRequest="52"
+                        HorizontalOptions="Start"
+                        VerticalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="26"/>
+                    </Border.StrokeShape>
+                    <Label x:Name="AvatarLabel"
+                           Text="T"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+                </Border>
+
+                <VerticalStackLayout Grid.Column="1" Margin="12,0,0,0" VerticalOptions="Center">
+                    <Label x:Name="DriverNameLabel"
+                           Text="Tài xế"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="White"/>
+                    <Label Text="Chế độ Tài xế"
+                           FontSize="12"
+                           TextColor="#4A5068"/>
+                </VerticalStackLayout>
+
+                <Border x:Name="StatusBadge"
+                        Grid.Column="2"
+                        BackgroundColor="#1A2A1A"
+                        StrokeThickness="1"
+                        Stroke="#00C853"
+                        Padding="10,6"
+                        VerticalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12"/>
+                    </Border.StrokeShape>
+                    <Label x:Name="StatusLabel"
+                           Text="● Offline"
+                           TextColor="#4A5068"
+                           FontSize="12"
+                           FontAttributes="Bold"/>
+                </Border>
+            </Grid>
+
+            <!-- VEHICLE INFO -->
+            <Border BackgroundColor="#13161F"
+                    StrokeThickness="1"
+                    Stroke="#2E3348"
+                    Padding="16,12">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12"/>
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                    <Label Text="🚗" FontSize="28" VerticalOptions="Center"/>
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label x:Name="VehicleTypeLabel"
+                               Text="Loại xe: —"
+                               TextColor="#8A8FA3"
+                               FontSize="13"/>
+                        <Label x:Name="VehiclePlateLabel"
+                               Text="Biển số: —"
+                               TextColor="White"
+                               FontSize="14"
+                               FontAttributes="Bold"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- ERROR BANNER -->
+            <Border x:Name="ErrorBanner"
+                    IsVisible="False"
+                    BackgroundColor="#2A1A1A"
+                    StrokeThickness="1"
+                    Stroke="#FF5252"
+                    Padding="14,10">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10"/>
+                </Border.StrokeShape>
+                <Label x:Name="ErrorLabel"
+                       Text=""
+                       TextColor="#FF5252"
+                       FontSize="13"
+                       HorizontalOptions="Center"/>
+            </Border>
+
+            <!-- ONLINE BUTTON -->
+            <Button x:Name="OnlineToggleButton"
+                    Text="🚦 Bắt đầu nhận cuốc xe"
+                    BackgroundColor="#00C853"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    FontSize="17"
+                    CornerRadius="16"
+                    HeightRequest="60"
+                    Clicked="OnGoOnlineClicked"/>
+
+            <!-- STATUS INFO -->
+            <Border BackgroundColor="#1C1F2E"
+                    StrokeThickness="1"
+                    Stroke="#2E3348"
+                    Padding="16,14">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12"/>
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <VerticalStackLayout HorizontalOptions="Center">
+                        <Label Text="Trạng thái" TextColor="#4A5068" FontSize="11" HorizontalOptions="Center"/>
+                        <Label x:Name="StatusInfoLabel"
+                               Text="Offline"
+                               TextColor="#8A8FA3"
+                               FontSize="15"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
+                        <Label Text="Cuốc đang chờ" TextColor="#4A5068" FontSize="11" HorizontalOptions="Center"/>
+                        <Label x:Name="PendingCountLabel"
+                               Text="0"
+                               TextColor="#00C853"
+                               FontSize="15"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+        </VerticalStackLayout>
+
+        <!-- ===== TAB VIEW ===== -->
+        <TabView Margin="0,16,0,0" 
+                 TabStripPlacement="Top"
+                 TabStripBackgroundColor="#13161F"
+                 TabIndicatorColor="#00C853">
+
+            <!-- TAB 1: Nhận Cuốc -->
+            <TabViewItem Title="Nhận Cuốc" 
+                         Icon="receive.png">
+                <ScrollView>
+                    <VerticalStackLayout Padding="20,16,20,24" Spacing="16">
+
+                        <!-- ACTIVE TRIP CARD -->
+                        <Border x:Name="ActiveTripCard"
+                                IsVisible="False"
+                                BackgroundColor="#1C1F2E"
+                                StrokeThickness="1"
+                                Stroke="#00C853"
+                                Padding="16,14">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12"/>
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="12">
+                                <Label Text="Chuyến đang thực hiện"
+                                       TextColor="#00C853"
+                                       FontSize="14"
+                                       FontAttributes="Bold"/>
+                                <Label x:Name="ActiveTripInfoLabel"
+                                       Text=""
+                                       TextColor="#8A8FA3"
+                                       FontSize="13"/>
+
+                                <Label x:Name="ActiveTripStatusLabel"
+                                       Text="🚗 Đang trên đường đến điểm đón"
+                                       TextColor="#FFC107"
+                                       FontSize="12"
+                                       HorizontalOptions="Center"/>
+
+                                <Button x:Name="ArriveButton"
+                                        Text="📍 Đã đến điểm đón"
+                                        BackgroundColor="#1565C0"
+                                        TextColor="White"
+                                        FontAttributes="Bold"
+                                        CornerRadius="10"
+                                        HeightRequest="46"
+                                        Clicked="OnArriveClicked"/>
+
+                                <Button x:Name="PickupButton"
+                                        Text="🧑 Đã đón khách"
+                                        IsVisible="False"
+                                        BackgroundColor="#E65100"
+                                        TextColor="White"
+                                        FontAttributes="Bold"
+                                        CornerRadius="10"
+                                        HeightRequest="46"
+                                        Clicked="OnPickupClicked"/>
+
+                                <Button x:Name="CompleteButton"
+                                        Text="✅ Hoàn thành chuyến"
+                                        IsVisible="False"
+                                        BackgroundColor="#2E7D32"
+                                        TextColor="White"
+                                        FontAttributes="Bold"
+                                        CornerRadius="10"
+                                        HeightRequest="46"
+                                        Clicked="OnCompleteClicked"/>
+
+                                <Button x:Name="DriverCancelButton"
+                                        Text="Hủy cuốc"
+                                        BackgroundColor="Transparent"
+                                        TextColor="#FF5252"
+                                        FontSize="13"
+                                        Clicked="OnDriverCancelTripClicked"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- PENDING TRIPS LIST -->
+                        <Label Text="Cuốc xe đang chờ"
+                               TextColor="White"
+                               FontSize="15"
+                               FontAttributes="Bold"
+                               Margin="0,4,0,0"/>
+
+                        <CollectionView x:Name="TripListView"
+                                        ItemsSource="{Binding TripRequests}"
+                                        SelectionMode="None"
+                                        EmptyView="Chưa có cuốc xe nào. Bật nhận cuốc để xem danh sách.">
+                            <CollectionView.EmptyViewTemplate>
+                                <DataTemplate>
+                                    <Label Text="Chưa có cuốc xe nào. Bật nhận cuốc để xem danh sách."
+                                           TextColor="#4A5068"
+                                           FontSize="13"
+                                           HorizontalOptions="Center"
+                                           Margin="0,20"/>
+                                </DataTemplate>
+                            </CollectionView.EmptyViewTemplate>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="services:PendingTripItem">
+                                    <Border BackgroundColor="#1C1F2E"
+                                            StrokeThickness="1"
+                                            Stroke="#2E3348"
+                                            Padding="14,12"
+                                            Margin="0,0,0,10">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="12"/>
+                                        </Border.StrokeShape>
+                                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                                            <HorizontalStackLayout Spacing="8">
+                                                <Label Text="📍" FontSize="13" VerticalOptions="Center"/>
+                                                <Label Text="{Binding PickupLocation}"
+                                                       TextColor="White"
+                                                       FontSize="13"
+                                                       FontAttributes="Bold"
+                                                       VerticalOptions="Center"/>
+                                            </HorizontalStackLayout>
+
+                                            <HorizontalStackLayout Grid.Row="1" Spacing="8">
+                                                <Label Text="🏁" FontSize="13" VerticalOptions="Center"/>
+                                                <Label Text="{Binding DropoffLocation}"
+                                                       TextColor="#8A8FA3"
+                                                       FontSize="13"
+                                                       VerticalOptions="Center"/>
+                                            </HorizontalStackLayout>
+
+                                            <HorizontalStackLayout Grid.Row="2" Spacing="8">
+                                                <Label Text="{Binding DisplayVehicle}"
+                                                       TextColor="#FFC107"
+                                                       FontSize="11"/>
+                                                <Label Text="•" TextColor="#4A5068" FontSize="11"/>
+                                                <Label Text="{Binding DisplayFare}"
+                                                       TextColor="#00C853"
+                                                       FontSize="11"
+                                                       FontAttributes="Bold"/>
+                                            </HorizontalStackLayout>
+
+                                            <Button Grid.Column="1"
+                                                    Grid.RowSpan="3"
+                                                    Text="Nhận"
+                                                    BackgroundColor="#00C853"
+                                                    TextColor="White"
+                                                    FontAttributes="Bold"
+                                                    FontSize="13"
+                                                    CornerRadius="10"
+                                                    WidthRequest="72"
+                                                    HeightRequest="52"
+                                                    VerticalOptions="Center"
+                                                    CommandParameter="{Binding TripID}"
+                                                    Clicked="OnAcceptTripClicked"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                    </VerticalStackLayout>
+                </ScrollView>
+            </TabViewItem>
+
+            <!-- TAB 2: Ghép Cuốc -->
+            <TabViewItem Title="Ghép Cuốc 🚗" 
+                         Icon="share.png">
+                <local:PoolingTabView x:Name="PoolingTab"/>
+            </TabViewItem>
+
+        </TabView>
+
+    </VerticalStackLayout>
+
+</ContentPage>

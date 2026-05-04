@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:services="clr-namespace:RideHailingApp.Services"
+    x:Class="RideHailingApp.PoolingTabView"
+    BackgroundColor="#0F1117">
+
+    <VerticalStackLayout Padding="20,16,20,24" Spacing="16">
+
+        <!-- ===== TAB TITLE ===== -->
+        <Label Text="Ghép cuốc 🚗"
+               TextColor="White"
+               FontSize="18"
+               FontAttributes="Bold"/>
+
+        <!-- ===== INFO CARD ===== -->
+        <Border BackgroundColor="#1C3A1C"
+                StrokeThickness="1"
+                Stroke="#00C853"
+                Padding="14,10">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="10"/>
+            </Border.StrokeShape>
+            <Label Text="💡 Ghép cuốc giúp hành khách tiết kiệm chi phí. Hệ thống sẽ gợi ý các cuốc phù hợp để bạn lựa chọn."
+                   TextColor="#A5D6A7"
+                   FontSize="12"
+                   LineBreakMode="WordWrap"/>
+        </Border>
+
+        <!-- ===== POOLING STATUS ===== -->
+        <Border BackgroundColor="#13161F"
+                StrokeThickness="1"
+                Stroke="#2E3348"
+                Padding="16,12">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="12"/>
+            </Border.StrokeShape>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <VerticalStackLayout HorizontalOptions="Center">
+                    <Label Text="Cuốc ghép thành công" TextColor="#4A5068" FontSize="11" HorizontalOptions="Center"/>
+                    <Label x:Name="PooledCountLabel"
+                           Text="0"
+                           TextColor="#00C853"
+                           FontSize="15"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
+                    <Label Text="Đang tìm kiếm" TextColor="#4A5068" FontSize="11" HorizontalOptions="Center"/>
+                    <Label x:Name="SearchingCountLabel"
+                           Text="0"
+                           TextColor="#FFC107"
+                           FontSize="15"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+
+        <!-- ===== ACTIVE POOLING TRIP ===== -->
+        <Border x:Name="ActivePoolingCard"
+                IsVisible="False"
+                BackgroundColor="#1A2A1A"
+                StrokeThickness="2"
+                Stroke="#00C853"
+                Padding="16,14">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="12"/>
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12">
+                <Label Text="Cuốc ghép đang hoạt động"
+                       TextColor="#00C853"
+                       FontSize="14"
+                       FontAttributes="Bold"/>
+
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="8">
+                    <!-- Main trip info -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Chuyến chính:"
+                               TextColor="#8A8FA3"
+                               FontSize="11"/>
+                        <Label x:Name="MainTripLabel"
+                               Text=""
+                               TextColor="White"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               LineBreakMode="TailTruncation"/>
+                    </VerticalStackLayout>
+
+                    <!-- Passengers badge -->
+                    <Border Grid.Column="1"
+                            BackgroundColor="#00C853"
+                            Padding="10,6"
+                            VerticalOptions="Start">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="8"/>
+                        </Border.StrokeShape>
+                        <Label x:Name="PassengersCountLabel"
+                               Text="👥 2/2"
+                               TextColor="White"
+                               FontSize="11"
+                               FontAttributes="Bold"/>
+                    </Border>
+
+                    <!-- Secondary trip info -->
+                    <VerticalStackLayout Grid.Row="1" Spacing="4">
+                        <Label Text="Cuốc ghép:"
+                               TextColor="#8A8FA3"
+                               FontSize="11"/>
+                        <Label x:Name="SecondaryTripLabel"
+                               Text=""
+                               TextColor="White"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               LineBreakMode="TailTruncation"/>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <Button x:Name="UnpoolButton"
+                        Text="Hủy ghép cuốc"
+                        BackgroundColor="Transparent"
+                        TextColor="#FF9800"
+                        FontSize="12"
+                        Clicked="OnUnpoolClicked"/>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- ===== SEARCH CANDIDATES ===== -->
+        <VerticalStackLayout x:Name="SearchCandidatesSection"
+                             Spacing="8">
+            <Label Text="Tìm kiếm cuốc có thể ghép"
+                   TextColor="White"
+                   FontSize="14"
+                   FontAttributes="Bold"/>
+
+            <Button x:Name="FindCandidatesButton"
+                    Text="🔍 Tìm cuốc phù hợp"
+                    BackgroundColor="#1565C0"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="10"
+                    HeightRequest="48"
+                    Clicked="OnFindCandidatesClicked"/>
+
+            <ActivityIndicator x:Name="SearchLoadingIndicator"
+                               IsRunning="False"
+                               IsVisible="False"
+                               Color="#00C853"/>
+
+            <!-- Danh sách cuốc candidates -->
+            <CollectionView x:Name="CandidatesListView"
+                            ItemsSource="{Binding PoolingCandidates}"
+                            SelectionMode="None"
+                            EmptyView="Không tìm thấy cuốc phù hợp. Bạn có thể nhận cuốc bình thường hoặc thử lại sau.">
+                <CollectionView.EmptyViewTemplate>
+                    <DataTemplate>
+                        <Label Text="Không tìm thấy cuốc phù hợp. Bạn có thể nhận cuốc bình thường hoặc thử lại sau."
+                               TextColor="#4A5068"
+                               FontSize="12"
+                               HorizontalOptions="Center"
+                               Margin="0,16"/>
+                    </DataTemplate>
+                </CollectionView.EmptyViewTemplate>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="services:PoolingCandidateItem">
+                        <Border BackgroundColor="#1C1F2E"
+                                StrokeThickness="1"
+                                Stroke="#2E3348"
+                                Padding="14,12"
+                                Margin="0,0,0,10">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12"/>
+                            </Border.StrokeShape>
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                                <!-- Pickup -->
+                                <HorizontalStackLayout Spacing="8">
+                                    <Label Text="📍" FontSize="12" VerticalOptions="Center"/>
+                                    <Label Text="{Binding DisplayPickup}"
+                                           TextColor="White"
+                                           FontSize="12"
+                                           VerticalOptions="Center"
+                                           LineBreakMode="TailTruncation"/>
+                                </HorizontalStackLayout>
+
+                                <!-- Distance badge -->
+                                <Border Grid.Column="1"
+                                        BackgroundColor="#FFC107"
+                                        Padding="8,4"
+                                        VerticalOptions="Center">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="6"/>
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding DisplayDistance}"
+                                           TextColor="#333333"
+                                           FontSize="10"
+                                           FontAttributes="Bold"/>
+                                </Border>
+
+                                <!-- Dropoff -->
+                                <HorizontalStackLayout Grid.Row="1" Spacing="8">
+                                    <Label Text="🏁" FontSize="12" VerticalOptions="Center"/>
+                                    <Label Text="{Binding DisplayDropoff}"
+                                           TextColor="#8A8FA3"
+                                           FontSize="12"
+                                           VerticalOptions="Center"
+                                           LineBreakMode="TailTruncation"/>
+                                </HorizontalStackLayout>
+
+                                <!-- Time info -->
+                                <HorizontalStackLayout Grid.Row="2" Spacing="6">
+                                    <Label Text="⏱️" FontSize="10" VerticalOptions="Center"/>
+                                    <Label Text="{Binding MinutesOld, StringFormat='{0} phút trước'}"
+                                           TextColor="#4A5068"
+                                           FontSize="10"
+                                           VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+
+                                <!-- Pool button -->
+                                <Button Grid.Column="1"
+                                        Grid.Row="1"
+                                        Grid.RowSpan="2"
+                                        Text="Ghép 🚗"
+                                        BackgroundColor="#00C853"
+                                        TextColor="White"
+                                        FontAttributes="Bold"
+                                        FontSize="12"
+                                        CornerRadius="8"
+                                        WidthRequest="64"
+                                        HeightRequest="48"
+                                        VerticalOptions="Center"
+                                        CommandParameter="{Binding TripID}"
+                                        Clicked="OnPoolButtonClicked"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+
+    </VerticalStackLayout>
+
+</ContentView>
