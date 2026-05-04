@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 namespace RideHailingApi.Middleware
 {
     // Đọc header X-Region và gắn vào HttpContext.Items["Region"].
@@ -7,14 +8,11 @@ namespace RideHailingApi.Middleware
         private const string HeaderName = "X-Region";
         private const string DefaultRegion = "South";
         private static readonly HashSet<string> Allowed = new(StringComparer.OrdinalIgnoreCase) { "North", "South" };
-
         private readonly RequestDelegate _next;
-
         public RegionMiddleware(RequestDelegate next)
         {
             _next = next;
         }
-
         public async Task InvokeAsync(HttpContext context)
         {
             string region = DefaultRegion;
@@ -28,6 +26,14 @@ namespace RideHailingApi.Middleware
                 }
             }
             context.Items["Region"] = region;
+
+            // Diagnostic logging: help troubleshooting when client header/region mismatch
+            try
+            {
+                var logger = context.RequestServices.GetService(typeof(ILogger<RegionMiddleware>)) as ILogger;
+                logger?.LogInformation("RegionMiddleware: resolved region '{Region}' for request {Method} {Path}", region, context.Request.Method, context.Request.Path);
+            }
+            catch { /* ignore logging errors */ }
             await _next(context);
         }
     }

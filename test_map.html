@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test Google Maps API Key</title>
+    <script>
+        function initMap() {
+            new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 10.762622, lng: 106.660172 },
+                zoom: 14
+            });
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCR8j7FWsZ48lq8OtaEcAvi8oKBAwZZZ08&callback=initMap"
+        async defer></script>
+</head>
+
+<body style="margin:0; padding:0;">
+    <div id="error-log"
+        style="position:absolute; top:0; left:0; width:100%; max-height:200px; overflow:auto; background:rgba(255,0,0,0.8); color:white; font-family:monospace; font-size:14px; z-index:9999; padding:10px; display:none;">
+    </div>
+    <div id="map" style="width: 100vw; height: 100vh;"></div>
+    <script>
+        (function () {
+            var oldError = console.error;
+            var oldWarn = console.warn;
+            var errorLog = document.getElementById('error-log');
+
+            function logToScreen(type, args) {
+                errorLog.style.display = 'block';
+                var msg = Array.from(args).map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ');
+                errorLog.innerHTML += '<b>' + type + ':</b> ' + msg + '<br>';
+            }
+
+            console.error = function () {
+                logToScreen('ERROR', arguments);
+                oldError.apply(console, arguments);
+            };
+            console.warn = function () {
+                logToScreen('WARN', arguments);
+                oldWarn.apply(console, arguments);
+            };
+
+            window.onerror = function (msg, url, lineNo, columnNo, error) {
+                logToScreen('UNCAUGHT', [msg, url, lineNo]);
+            };
+        })();
+    </script>
+</body>
+
+</html>

@@ -11,13 +11,15 @@ namespace RideHailingApi.Controllers
     public class UsersController : ControllerBase
     {
         private readonly DataConnect _db;
+        private readonly ILogger<UsersController> _logger;
 
-        public UsersController(DataConnect db)
+        public UsersController(DataConnect db, ILogger<UsersController> logger)
         {
             _db = db;
+            _logger = logger;
         }
 
-        // GET /api/users/{id} — đọc profile (có failover sang Replica)
+        // GET /api/users/{id} — read profile (can failover to Replica)
         [HttpGet("{id:int}")]
         public IActionResult GetProfile(int id)
         {

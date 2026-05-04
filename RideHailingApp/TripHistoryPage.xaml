@@ -2,10 +2,15 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:RideHailingApp"
     x:Class="RideHailingApp.TripHistoryPage"
     Shell.NavBarIsVisible="False"
     Title="Lịch sử chuyến"
     BackgroundColor="{AppThemeBinding Dark=#0F1117, Light=#F5F5F5}">
+
+    <ContentPage.Resources>
+        <local:HexToColorConverter x:Key="HexToColor"/>
+    </ContentPage.Resources>
 
     <Grid RowDefinitions="Auto,Auto,*">
 
@@ -20,7 +25,7 @@
                    TextColor="{AppThemeBinding Dark=#8A8FA3, Light=#555555}"/>
         </VerticalStackLayout>
 
-        <!-- Banner READ-ONLY (quan trọng cho demo đề tài) -->
+        <!-- Banner READ-ONLY -->
         <Border Grid.Row="1"
                 x:Name="ReadOnlyBanner"
                 IsVisible="False"
@@ -51,7 +56,6 @@
         <!-- Danh sách chuyến đi -->
         <CollectionView Grid.Row="2"
                         x:Name="TripList"
-                        ItemsSource="{Binding Trips}"
                         Margin="16,12,16,0">
 
             <CollectionView.EmptyView>
@@ -74,14 +78,15 @@
                             Margin="0,0,0,10">
                         <Border.StrokeShape><RoundRectangle CornerRadius="16"/></Border.StrokeShape>
 
-                        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10">
 
-                            <!-- Row 1: Trạng thái + Ngày + Giá -->
+                            <!-- Row 0: Trạng thái + Ngày + Giá -->
                             <Grid ColumnDefinitions="Auto,*,Auto">
-                                <Border BackgroundColor="{AppThemeBinding Dark=#0D2E1A, Light=#E8F5E9}" Padding="8,4" StrokeThickness="0">
+                                <Border Padding="8,4" StrokeThickness="0"
+                                        BackgroundColor="{Binding StatusColor, Converter={StaticResource HexToColor}}">
                                     <Border.StrokeShape><RoundRectangle CornerRadius="6"/></Border.StrokeShape>
                                     <Label Text="{Binding StatusText}"
-                                           TextColor="#00C853" FontSize="12" FontAttributes="Bold"/>
+                                           TextColor="White" FontSize="12" FontAttributes="Bold"/>
                                 </Border>
                                 <Label Grid.Column="1"
                                        Text="{Binding DateText}"
@@ -93,8 +98,16 @@
                                        FontAttributes="Bold" VerticalOptions="Center"/>
                             </Grid>
 
+                            <!-- Row 1: Loại xe -->
+                            <HorizontalStackLayout Grid.Row="1" Spacing="6">
+                                <Label Text="🛵" FontSize="13" VerticalOptions="Center"/>
+                                <Label Text="{Binding VehicleType}"
+                                       TextColor="{AppThemeBinding Dark=#8A8FA3, Light=#555555}"
+                                       FontSize="12" VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
+
                             <!-- Row 2: Điểm đón - Điểm đến -->
-                            <VerticalStackLayout Grid.Row="1" Spacing="8">
+                            <VerticalStackLayout Grid.Row="2" Spacing="8">
                                 <Grid ColumnDefinitions="20,*">
                                     <Label Text="📍" FontSize="14" VerticalOptions="Center"/>
                                     <Label Grid.Column="1"
@@ -112,8 +125,8 @@
                                 </Grid>
                             </VerticalStackLayout>
 
-                            <!-- Row 3: Tài xế + Rating -->
-                            <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto">
+                            <!-- Row 3: Tài xế + Rating + Nút đánh giá -->
+                            <Grid Grid.Row="3" ColumnDefinitions="Auto,*,Auto,Auto">
                                 <Border BackgroundColor="#252A3A" StrokeThickness="0"
                                         WidthRequest="30" HeightRequest="30">
                                     <Border.StrokeShape><RoundRectangle CornerRadius="15"/></Border.StrokeShape>
@@ -124,10 +137,22 @@
                                        Text="{Binding DriverName}"
                                        TextColor="{AppThemeBinding Dark=#8A8FA3, Light=#555555}" FontSize="13"
                                        VerticalOptions="Center" Margin="8,0,0,0"/>
-                                <HorizontalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                                <HorizontalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center" Margin="0,0,8,0">
                                     <Label Text="⭐" FontSize="13"/>
                                     <Label Text="{Binding Rating}" TextColor="#FFC107" FontSize="13"/>
                                 </HorizontalStackLayout>
+                                <Button Grid.Column="3"
+                                        Text="Đánh giá"
+                                        IsVisible="{Binding CanRate}"
+                                        CommandParameter="{Binding TripId}"
+                                        Clicked="OnRateButtonClicked"
+                                        BackgroundColor="#FFC107"
+                                        TextColor="#111111"
+                                        FontSize="11"
+                                        FontAttributes="Bold"
+                                        Padding="10,5"
+                                        CornerRadius="8"
+                                        HeightRequest="32"/>
                             </Grid>
 
                         </Grid>

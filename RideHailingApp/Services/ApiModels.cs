@@ -29,8 +29,39 @@ namespace RideHailingApp.Services
 
     public class LoginResponse
     {
-        public string AccessToken { get; set; } = "";
-        public UserDto User { get; set; } = new();
+        public string AccessToken  { get; set; } = "";
+        public string RefreshToken { get; set; } = "";
+        public int    ExpiresIn    { get; set; }
+        public string TokenType    { get; set; } = "Bearer";
+        public UserDto User        { get; set; } = new();
+    }
+
+    public class RefreshResponse
+    {
+        public string AccessToken  { get; set; } = "";
+        public string RefreshToken { get; set; } = "";
+        public int    ExpiresIn    { get; set; }
+    }
+
+    public class RatingRequest
+    {
+        public int     Score   { get; set; }
+        public string? Comment { get; set; }
+    }
+
+    public class InvoiceResponse
+    {
+        public int     TripId        { get; set; }
+        public string  Pickup        { get; set; } = "";
+        public string  Dropoff       { get; set; } = "";
+        public string  VehicleType   { get; set; } = "";
+        public double? DistanceKm    { get; set; }
+        public decimal? Fare         { get; set; }
+        public string  Status        { get; set; } = "";
+        public string? CreatedAt     { get; set; }
+        public int?    RatingScore   { get; set; }
+        public string? RatingComment { get; set; }
+        public string DisplayFare => Fare.HasValue ? $"{Fare.Value:#,##0}đ" : "—";
     }
 
     public class BookingResponse
@@ -53,6 +84,7 @@ namespace RideHailingApp.Services
         public string DropoffLocation { get; set; } = "";
         public string Region { get; set; } = "";
         public string VehicleType { get; set; } = "Xe máy";
+        public double DistanceKm { get; set; }
     }
 
     public class TripHistoryItem
@@ -64,7 +96,11 @@ namespace RideHailingApp.Services
         public string DropoffLocation { get; set; } = "";
         public string Region { get; set; } = "";
         public string Status { get; set; } = "";
+        public string VehicleType { get; set; } = "";
+        public decimal? Fare { get; set; }
         public DateTime? CreatedAt { get; set; }
+
+        public string DisplayFare => Fare.HasValue ? $"{Fare.Value:#,##0}đ" : "—";
     }
 
     // Phản hồi từ GET /api/trips/health/{region}

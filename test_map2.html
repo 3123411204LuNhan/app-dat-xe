@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Google Maps API Key 2</title>
+    <script>
+        function initMap() {
+            try {
+                new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: 10.762622, lng: 106.660172 },
+                    zoom: 14
+                });
+                document.getElementById('status').innerText = 'MAP LOADED SUCCESSFULLY!';
+                document.getElementById('status').style.color = 'green';
+            } catch (e) {
+                document.getElementById('status').innerText = 'ERROR: ' + e.message;
+            }
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCCYa-4drXqi7-uTnLKKzprYFiJZlSzXss&callback=initMap" async defer></script>
+</head>
+<body style="margin:0; padding:0;">
+    <h1 id="status" style="position: absolute; top: 10px; left: 10px; z-index: 1000; background: white; padding: 10px; color: red;">LOADING...</h1>
+    <div id="map" style="width: 100vw; height: 100vh;"></div>
+    <script>
+        // Catch global errors
+        window.onerror = function(msg) {
+            document.getElementById('status').innerText = 'GLOBAL ERROR: ' + msg;
+            document.getElementById('status').style.color = 'red';
+        };
+        // Override console.error
+        var oldError = console.error;
+        console.error = function() {
+            var msg = Array.from(arguments).join(' ');
+            document.getElementById('status').innerText = 'CONSOLE ERROR: ' + msg;
+            document.getElementById('status').style.color = 'red';
+            oldError.apply(console, arguments);
+        };
+    </script>
+</body>
+</html>

@@ -47,6 +47,10 @@ namespace RideHailingApi.Services
             lock (_lock) return _log.ToList();
         }
 
+        public List<string> GetManualDownRegions()
+        {
+            lock (_lock) return _simulatedDown.ToList();
+        }
         public record LogEntry
         {
             public DateTime Time    { get; init; }

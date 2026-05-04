@@ -9,7 +9,13 @@ namespace RideHailingApp.Services
 
         public event Action<double, double>? LocationUpdated;
         public event Action<string, string>? TripStatusChanged;
-        public event Action<int, string, string>? NewTripRequest;  // tripId, pickup, dropoff
+        public event Action<int, string, string>? NewTripRequest;   // tripId, pickup, dropoff
+        public event Action<int, string, string, string>? DriverAssigned; // tripId, driverName, plate, vehicleType
+        public event Action<int, string>? TripCancelled;            // tripId, reason
+
+        public event Action<Exception?>? Reconnecting;
+        public event Action<string?>? Reconnected;
+        public event Action<Exception?>? Closed;
 
         public HubConnectionState State => _connection?.State ?? HubConnectionState.Disconnected;
 
@@ -23,7 +29,7 @@ namespace RideHailingApp.Services
             if (_connection?.State == HubConnectionState.Connected) return;
 
             string baseUrl = DeviceInfo.Platform == DevicePlatform.Android
-                ? "http://192.168.1.45:5108"
+                ? "http://192.168.1.121:5108"
                 : "https://localhost:7285";
 
             _connection = new HubConnectionBuilder()
@@ -37,19 +43,35 @@ namespace RideHailingApp.Services
                 .Build();
 
             _connection.On<double, double>("OnLocationUpdated", (lat, lng) =>
-            {
-                MainThread.BeginInvokeOnMainThread(() => LocationUpdated?.Invoke(lat, lng));
-            });
+                MainThread.BeginInvokeOnMainThread(() => LocationUpdated?.Invoke(lat, lng)));
 
             _connection.On<string, string>("OnTripStatusChanged", (status, message) =>
-            {
-                MainThread.BeginInvokeOnMainThread(() => TripStatusChanged?.Invoke(status, message));
-            });
+                MainThread.BeginInvokeOnMainThread(() => TripStatusChanged?.Invoke(status, message)));
 
             _connection.On<int, string, string>("OnNewTripRequest", (id, pickup, dropoff) =>
+                MainThread.BeginInvokeOnMainThread(() => NewTripRequest?.Invoke(id, pickup, dropoff)));
+
+            _connection.On<int, string, string, string>("OnDriverAssigned", (tripId, name, plate, vehicle) =>
+                MainThread.BeginInvokeOnMainThread(() => DriverAssigned?.Invoke(tripId, name, plate, vehicle)));
+
+            _connection.On<int, string>("OnTripCancelled", (tripId, reason) =>
+                MainThread.BeginInvokeOnMainThread(() => TripCancelled?.Invoke(tripId, reason)));
+
+            _connection.Reconnecting += ex =>
             {
-                MainThread.BeginInvokeOnMainThread(() => NewTripRequest?.Invoke(id, pickup, dropoff));
-            });
+                MainThread.BeginInvokeOnMainThread(() => Reconnecting?.Invoke(ex));
+                return Task.CompletedTask;
+            };
+            _connection.Reconnected += connId =>
+            {
+                MainThread.BeginInvokeOnMainThread(() => Reconnected?.Invoke(connId));
+                return Task.CompletedTask;
+            };
+            _connection.Closed += ex =>
+            {
+                MainThread.BeginInvokeOnMainThread(() => Closed?.Invoke(ex));
+                return Task.CompletedTask;
+            };
 
             await _connection.StartAsync();
         }
@@ -70,6 +92,12 @@ namespace RideHailingApp.Services
         {
             if (_connection?.State == HubConnectionState.Connected)
                 await _connection.InvokeAsync("LeaveTripGroup", tripId);
+        }
+
+        public async Task JoinUserGroupAsync(int userId)
+        {
+            if (_connection?.State == HubConnectionState.Connected)
+                await _connection.InvokeAsync("JoinUserGroup", userId.ToString());
         }
 
         public async Task JoinDriverPoolAsync(string region)

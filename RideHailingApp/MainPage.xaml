@@ -1,343 +1,668 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:mapsui="clr-namespace:Mapsui.UI.Maui;assembly=Mapsui.UI.Maui"
              x:Class="RideHailingApp.MainPage"
              Shell.NavBarIsVisible="False"
-             Title="Đặt xe">
+             BackgroundColor="White">
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid>
 
-        <!-- ===== ROW 0: HEADER ===== -->
-        <Grid Grid.Row="0" BackgroundColor="{AppThemeBinding Dark=#0F1117, Light=#00C853}"
-              Padding="16,44,16,12" ColumnDefinitions="Auto,*,Auto">
+        <!-- ════════════════════════════════════════════════ -->
+        <!--                  PANEL HOME                     -->
+        <!-- ════════════════════════════════════════════════ -->
+        <Grid x:Name="HomePanel" RowDefinitions="Auto,*" BackgroundColor="White">
 
-            <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                <Label Text="RideNow" FontSize="20" FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Dark=White, Light=#111111}"/>
-                <Label x:Name="ServerStatusLabel" Text="● Server Miền Nam"
-                       TextColor="#00C853" FontSize="11"/>
-            </VerticalStackLayout>
+            <!-- Header xanh lá -->
+            <Grid Grid.Row="0" BackgroundColor="#00B14F" Padding="16,44,16,16">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Label Text="RideNow" FontSize="22" FontAttributes="Bold" TextColor="White"/>
+                        <Label x:Name="ServerStatusLabel" Text="● Server Miền Nam"
+                               TextColor="#CCFFDD" FontSize="12"/>
+                    </VerticalStackLayout>
+                    <Border Grid.Column="1" BackgroundColor="#006E32" StrokeThickness="0"
+                            WidthRequest="42" HeightRequest="42" VerticalOptions="Center">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="21"/></Border.StrokeShape>
+                        <Label x:Name="AvatarLabel" Text="?"
+                               TextColor="White" FontSize="18" FontAttributes="Bold"
+                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                    </Border>
+                </Grid>
+            </Grid>
 
-            <Border Grid.Column="1" x:Name="ReadOnlyBanner" IsVisible="False"
-                    BackgroundColor="#2A2200" StrokeThickness="1" Stroke="#FFC107"
-                    Padding="10,6" HorizontalOptions="Center" VerticalOptions="Center">
-                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
-                <HorizontalStackLayout Spacing="6">
-                    <Label Text="⚠️" FontSize="12" VerticalOptions="Center"/>
-                    <Label Text="Chế độ dự phòng • Chỉ đọc"
-                           TextColor="#FFC107" FontSize="11" VerticalOptions="Center"/>
-                </HorizontalStackLayout>
-            </Border>
+            <!-- Nội dung -->
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Spacing="0" BackgroundColor="White">
 
-            <Border Grid.Column="2"
-                    BackgroundColor="{AppThemeBinding Dark=#1C1F2E, Light=#EEEEEE}"
-                    StrokeThickness="0" WidthRequest="38" HeightRequest="38"
-                    VerticalOptions="Center">
-                <Border.StrokeShape><RoundRectangle CornerRadius="19"/></Border.StrokeShape>
-                <Label x:Name="AvatarLabel" Text="N"
-                       TextColor="{AppThemeBinding Dark=White, Light=#111111}"
-                       FontSize="16" FontAttributes="Bold"
-                       HorizontalOptions="Center" VerticalOptions="Center"/>
-            </Border>
-        </Grid>
+                    <!-- Thanh tìm kiếm (tap để mở search panel) -->
+                    <Border Margin="16,16,16,0" BackgroundColor="#F5F5F5"
+                            StrokeThickness="0" Padding="16,14">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="12"/></Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnSearchBarTapped"/>
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="10">
+                            <Label Text="🔍" FontSize="16" VerticalOptions="Center"/>
+                            <Label Text="Bạn muốn đi đâu?" TextColor="#999"
+                                   FontSize="15" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Border>
 
-        <!-- ===== ROW 1: BẢN ĐỒ ===== -->
-        <Grid Grid.Row="1">
-            <mapsui:MapView x:Name="MyMap"
-                            VerticalOptions="FillAndExpand"
-                            HorizontalOptions="FillAndExpand"/>
+                    <!-- Banner chế độ dự phòng -->
+                    <Border x:Name="ReadOnlyBanner" IsVisible="False"
+                            Margin="16,10,16,0" BackgroundColor="#FFF8E1"
+                            StrokeThickness="1" Stroke="#FFC107" Padding="12,8">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="⚠️" FontSize="13" VerticalOptions="Center"/>
+                            <Label Text="Chế độ dự phòng • Không thể đặt xe"
+                                   TextColor="#E65100" FontSize="13" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Border>
 
-            <!-- Nút vị trí hiện tại -->
-            <Border BackgroundColor="{AppThemeBinding Dark=#1C1F2E, Light=White}"
-                    StrokeThickness="0" WidthRequest="44" HeightRequest="44"
-                    HorizontalOptions="End" VerticalOptions="End" Margin="0,0,16,16">
-                <Border.StrokeShape><RoundRectangle CornerRadius="22"/></Border.StrokeShape>
-                <ImageButton Source="location.png" Padding="10"
-                             BackgroundColor="Transparent"
-                             Clicked="OnMyLocationClicked"/>
-            </Border>
-        </Grid>
+                    <!-- Tiêu đề dịch vụ -->
+                    <Label Text="Dịch vụ" FontSize="16" FontAttributes="Bold"
+                           TextColor="#111" Margin="16,20,16,12"/>
 
-        <!-- ===== ROW 2: PANEL CHUYỂN ĐỔI (4 trạng thái) ===== -->
+                    <!-- 3 nút dịch vụ chính -->
+                    <Grid ColumnDefinitions="*,*,*" Margin="16,0" ColumnSpacing="10">
 
-        <!-- PANEL 1: Form tìm xe (trạng thái ban đầu) -->
-        <Border x:Name="SearchFormPanel" Grid.Row="2"
-                BackgroundColor="{AppThemeBinding Dark=#1C1F2E, Light=White}"
-                StrokeThickness="0" Padding="16,12,16,28">
-            <VerticalStackLayout Spacing="10">
+                        <!-- Xe máy -->
+                        <Border Grid.Column="0" BackgroundColor="#F0FFF5"
+                                StrokeThickness="0" Padding="0,18">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16"/></Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnXeMayClicked"/>
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Label Text="🛵" FontSize="38" HorizontalOptions="Center"/>
+                                <Label Text="Xe máy" FontSize="13" FontAttributes="Bold"
+                                       TextColor="#111" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Border>
 
-                <Border BackgroundColor="{AppThemeBinding Dark=#1C1F2E, Light=White}"
-                        StrokeThickness="1"
-                        Stroke="{AppThemeBinding Dark=#2E3348, Light=#CCCCCC}" Padding="0">
-                    <Border.StrokeShape><RoundRectangle CornerRadius="12"/></Border.StrokeShape>
-                    <Grid ColumnDefinitions="44,*" HeightRequest="48">
-                        <Label Text="📍" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center"/>
-                        <Entry Grid.Column="1" x:Name="PickupEntry"
-                               Placeholder="Vị trí của bạn"
-                               PlaceholderColor="{AppThemeBinding Dark=#4A5068, Light=#AAAAAA}"
-                               TextColor="{AppThemeBinding Dark=White, Light=#111111}"
-                               BackgroundColor="Transparent" VerticalOptions="Center"/>
+                        <!-- Ô tô -->
+                        <Border Grid.Column="1" BackgroundColor="#F0FFF5"
+                                StrokeThickness="0" Padding="0,18">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16"/></Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnOtoClicked"/>
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Label Text="🚗" FontSize="38" HorizontalOptions="Center"/>
+                                <Label Text="Ô tô" FontSize="13" FontAttributes="Bold"
+                                       TextColor="#111" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Đặt trước -->
+                        <Border Grid.Column="2" BackgroundColor="#F0FFF5"
+                                StrokeThickness="0" Padding="0,18">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16"/></Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnDatXeTruocClicked"/>
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Label Text="📅" FontSize="38" HorizontalOptions="Center"/>
+                                <Label Text="Đặt trước" FontSize="13" FontAttributes="Bold"
+                                       TextColor="#111" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Border>
+
                     </Grid>
-                </Border>
 
-                <Border BackgroundColor="{AppThemeBinding Dark=#1C1F2E, Light=White}"
-                        StrokeThickness="1" Stroke="#00C853" Padding="0">
-                    <Border.StrokeShape><RoundRectangle CornerRadius="12"/></Border.StrokeShape>
-                    <Grid ColumnDefinitions="44,*" HeightRequest="48">
-                        <Label Text="🏁" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center"/>
+                    <!-- GPS status -->
+                    <Border Margin="16,16,16,16" BackgroundColor="#F8F8F8"
+                            StrokeThickness="0" Padding="14,12">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="12"/></Border.StrokeShape>
+                        <HorizontalStackLayout Spacing="10">
+                            <Label Text="📍" FontSize="16" VerticalOptions="Center"/>
+                            <Label x:Name="MapStatusLabel" Text="Đang xác định vị trí..."
+                                   TextColor="#666" FontSize="13" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+
+        <!-- ════════════════════════════════════════════════ -->
+        <!--            PANEL NHẬP ĐIỂM ĐẾN                 -->
+        <!-- ════════════════════════════════════════════════ -->
+        <Grid x:Name="SearchPanel" IsVisible="False"
+              RowDefinitions="Auto,*" BackgroundColor="White">
+
+            <!-- Thanh tìm kiếm -->
+            <Grid Grid.Row="0" BackgroundColor="White"
+                  Padding="12,44,12,12" ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <BoxView Grid.ColumnSpan="2" HeightRequest="1"
+                         BackgroundColor="#EEE" VerticalOptions="End"/>
+
+                <Button Grid.Column="0" Text="←" FontSize="20"
+                        BackgroundColor="Transparent" TextColor="#111"
+                        WidthRequest="44" HeightRequest="44"
+                        Clicked="OnBackFromSearch"/>
+
+                <Border Grid.Column="1" BackgroundColor="#F5F5F5"
+                        StrokeThickness="0" Padding="14,0">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="24"/></Border.StrokeShape>
+                    <Grid ColumnDefinitions="Auto,*" HeightRequest="48">
+                        <Ellipse Grid.Column="0" Fill="#00B14F"
+                                 WidthRequest="10" HeightRequest="10" VerticalOptions="Center"/>
                         <Entry Grid.Column="1" x:Name="DestinationEntry"
                                Placeholder="Bạn muốn đi đâu?"
-                               PlaceholderColor="{AppThemeBinding Dark=#4A5068, Light=#AAAAAA}"
-                               TextColor="{AppThemeBinding Dark=White, Light=#111111}"
-                               BackgroundColor="Transparent" VerticalOptions="Center"/>
+                               PlaceholderColor="#AAA" TextColor="#111"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" Margin="10,0,0,0"
+                               TextChanged="OnDestinationTextChanged"/>
                     </Grid>
                 </Border>
+            </Grid>
 
-                <Button x:Name="FindDriverButton"
-                        Text="Tìm tài xế"
-                        BackgroundColor="#00C853"
-                        TextColor="{AppThemeBinding Dark=White, Light=#111111}"
-                        FontAttributes="Bold" FontSize="16" CornerRadius="14" HeightRequest="50"
-                        Clicked="OnFindDriverClicked"/>
+            <!-- Nội dung tìm kiếm -->
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout>
 
-            </VerticalStackLayout>
-        </Border>
-
-        <!-- PANEL 2: Chọn loại xe + giá cước (Giai đoạn 2-3) -->
-        <Border x:Name="VehicleSelectionPanel" Grid.Row="2" IsVisible="False"
-                BackgroundColor="{AppThemeBinding Dark=#1C1F2E, Light=White}"
-                StrokeThickness="0" Padding="20,16,20,28">
-            <VerticalStackLayout Spacing="10">
-
-                <BoxView WidthRequest="40" HeightRequest="4" BackgroundColor="#3E4258"
-                         HorizontalOptions="Center" CornerRadius="2"/>
-
-                <Grid ColumnDefinitions="*,Auto">
-                    <VerticalStackLayout>
-                        <Label Text="Chọn loại xe" FontSize="17" FontAttributes="Bold"
-                               TextColor="{AppThemeBinding Dark=White, Light=#111}"/>
-                        <Label x:Name="RouteInfoLabel" Text="" TextColor="#8A8FA3" FontSize="12"/>
+                    <!-- Địa điểm phổ biến (hiển thị khi chưa nhập) -->
+                    <VerticalStackLayout x:Name="PopularSection">
+                        <Grid Padding="16,14,16,8" ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="Địa điểm phổ biến"
+                                   FontSize="14" FontAttributes="Bold" TextColor="#111"/>
+                            <Label Grid.Column="1" Text="Xem thêm ›"
+                                   FontSize="13" TextColor="#00B14F" VerticalOptions="Center"/>
+                        </Grid>
+                        <CollectionView x:Name="PopularLocationsList"
+                                        SelectionMode="Single"
+                                        SelectionChanged="OnDestinationSuggestionSelected">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="16,10" ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                                        <Border Grid.Column="0" BackgroundColor="#FFF3E0"
+                                                StrokeThickness="0" WidthRequest="40" HeightRequest="40">
+                                            <Border.StrokeShape><RoundRectangle CornerRadius="20"/></Border.StrokeShape>
+                                            <Label Text="⭐" FontSize="18"
+                                                   HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Border>
+                                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                            <Label Text="{Binding DisplayText}" TextColor="#111"
+                                                   FontSize="14" FontAttributes="Bold"
+                                                   LineBreakMode="TailTruncation"/>
+                                            <Label Text="{Binding SubText}" TextColor="#888"
+                                                   FontSize="12" LineBreakMode="TailTruncation"/>
+                                        </VerticalStackLayout>
+                                        <BoxView Grid.ColumnSpan="2" HeightRequest="1"
+                                                 BackgroundColor="#F5F5F5" VerticalOptions="End"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
                     </VerticalStackLayout>
-                    <Button Grid.Column="1" Text="✕" BackgroundColor="Transparent"
-                            TextColor="#8A8FA3" FontSize="18" WidthRequest="40"
-                            Clicked="OnCancelVehicleSelection"/>
+
+                    <!-- Kết quả tìm kiếm (DB + Google) -->
+                    <VerticalStackLayout x:Name="SearchResultsSection" IsVisible="False">
+
+                        <!-- DB results header -->
+                        <Label x:Name="DbResultsHeader" Text="Địa điểm trong hệ thống"
+                               FontSize="12" TextColor="#888" FontAttributes="Bold"
+                               Margin="16,12,16,4" IsVisible="False"/>
+
+                        <CollectionView x:Name="DbLocationsList"
+                                        SelectionMode="Single"
+                                        SelectionChanged="OnDestinationSuggestionSelected">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="16,10" ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                                        <Border Grid.Column="0" BackgroundColor="#E8F5E9"
+                                                StrokeThickness="0" WidthRequest="40" HeightRequest="40">
+                                            <Border.StrokeShape><RoundRectangle CornerRadius="20"/></Border.StrokeShape>
+                                            <Label Text="🏢" FontSize="18"
+                                                   HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Border>
+                                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                            <Label Text="{Binding DisplayText}" TextColor="#111"
+                                                   FontSize="14" FontAttributes="Bold"
+                                                   LineBreakMode="TailTruncation"/>
+                                            <Label Text="{Binding SubText}" TextColor="#888"
+                                                   FontSize="12" LineBreakMode="TailTruncation"/>
+                                        </VerticalStackLayout>
+                                        <BoxView Grid.ColumnSpan="2" HeightRequest="1"
+                                                 BackgroundColor="#F5F5F5" VerticalOptions="End"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <!-- Google suggestions header -->
+                        <Label x:Name="GoogleResultsHeader" Text="Gợi ý từ Google Maps"
+                               FontSize="12" TextColor="#888" FontAttributes="Bold"
+                               Margin="16,8,16,4" IsVisible="False"/>
+
+                        <CollectionView x:Name="DestinationAutocompleteList"
+                                        SelectionMode="Single"
+                                        SelectionChanged="OnDestinationSuggestionSelected">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="16,10" ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                                        <Border Grid.Column="0" BackgroundColor="#F3F0FF"
+                                                StrokeThickness="0" WidthRequest="40" HeightRequest="40">
+                                            <Border.StrokeShape><RoundRectangle CornerRadius="20"/></Border.StrokeShape>
+                                            <Label Text="🔍" FontSize="18"
+                                                   HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Border>
+                                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                            <Label Text="{Binding DisplayText}" TextColor="#111"
+                                                   FontSize="14" LineBreakMode="TailTruncation"/>
+                                            <Label Text="{Binding SubText}" TextColor="#888"
+                                                   FontSize="12" LineBreakMode="TailTruncation"/>
+                                        </VerticalStackLayout>
+                                        <BoxView Grid.ColumnSpan="2" HeightRequest="1"
+                                                 BackgroundColor="#F5F5F5" VerticalOptions="End"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+            </ScrollView>
+
+        </Grid>
+
+        <!-- ════════════════════════════════════════════════ -->
+        <!--          PANEL BẢN ĐỒ CHỌN ĐIỂM ĐÓN            -->
+        <!-- ════════════════════════════════════════════════ -->
+        <Grid x:Name="MapPickupPanel" IsVisible="False"
+              RowDefinitions="Auto,*,Auto,Auto">
+
+            <!-- Thanh trên -->
+            <Grid Grid.Row="0" BackgroundColor="White"
+                  Padding="12,44,12,12" ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <Button Grid.Column="0" Text="←" FontSize="20"
+                        BackgroundColor="Transparent" TextColor="#111"
+                        WidthRequest="44" HeightRequest="44"
+                        Clicked="OnBackFromMapPickup"/>
+                <Border Grid.Column="1" BackgroundColor="#F5F5F5"
+                        StrokeThickness="0" Padding="14,0">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="24"/></Border.StrokeShape>
+                    <Grid ColumnDefinitions="Auto,*" HeightRequest="48">
+                        <Ellipse Grid.Column="0" Fill="#2196F3"
+                                 WidthRequest="10" HeightRequest="10" VerticalOptions="Center"/>
+                        <Entry Grid.Column="1" x:Name="PickupEntry"
+                               Placeholder="Đón tại?"
+                               PlaceholderColor="#AAA" TextColor="#111"
+                               BackgroundColor="Transparent"
+                               VerticalOptions="Center" Margin="10,0,0,0"
+                               TextChanged="OnPickupTextChanged"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Bản đồ Google Maps thực -->
+            <Grid Grid.Row="1">
+                <WebView x:Name="PickupMapView"
+                         VerticalOptions="FillAndExpand"
+                         HorizontalOptions="FillAndExpand"/>
+
+                <!-- Pin trung tâm cố định (InputTransparent để không chặn cử chỉ map) -->
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center"
+                                     Spacing="0" Margin="0,0,0,40" InputTransparent="True">
+                    <Border BackgroundColor="#2196F3" StrokeThickness="3" Stroke="White"
+                            WidthRequest="44" HeightRequest="44" HorizontalOptions="Center"
+                            InputTransparent="True">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="22"/></Border.StrokeShape>
+                        <Ellipse Fill="White" WidthRequest="14" HeightRequest="14"
+                                 HorizontalOptions="Center" VerticalOptions="Center"/>
+                    </Border>
+                    <BoxView Color="#2196F3" WidthRequest="4" HeightRequest="12"
+                             HorizontalOptions="Center" InputTransparent="True"/>
+                    <Ellipse Fill="#2196F3" WidthRequest="10" HeightRequest="5"
+                             HorizontalOptions="Center" InputTransparent="True"/>
+                </VerticalStackLayout>
+
+                <!-- Autocomplete overlay cho pickup -->
+                <Border x:Name="PickupAutocompleteContainer" IsVisible="False"
+                        VerticalOptions="Start" Margin="12,4,12,0"
+                        BackgroundColor="White" StrokeThickness="1" Stroke="#DDD"
+                        Padding="0" MaximumHeightRequest="200">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="12"/></Border.StrokeShape>
+                    <CollectionView x:Name="PickupAutocompleteList" SelectionMode="Single"
+                                    SelectionChanged="OnPickupSuggestionSelected">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="14,12" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                    <Label Grid.Column="0" Text="📍" FontSize="14" VerticalOptions="Center"/>
+                                    <Label Grid.Column="1" Text="{Binding DisplayText}"
+                                           TextColor="#111" FontSize="13" VerticalOptions="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Border>
+            </Grid>
+
+            <!-- Hiển thị địa chỉ điểm đón hiện tại -->
+            <Border Grid.Row="2" BackgroundColor="White" StrokeThickness="0" Padding="16,14">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                    <Border Grid.Column="0" BackgroundColor="#E8F5E9" StrokeThickness="0"
+                            WidthRequest="40" HeightRequest="40">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="20"/></Border.StrokeShape>
+                        <Label Text="🕐" FontSize="18"
+                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                        <Label x:Name="CurrentPickupLabel" Text="Vị trí hiện tại"
+                               FontSize="14" FontAttributes="Bold" TextColor="#111"/>
+                        <Label x:Name="CurrentPickupSubLabel" Text="Đang xác định vị trí..."
+                               FontSize="12" TextColor="#888"/>
+                    </VerticalStackLayout>
+                    <Label Grid.Column="2" Text="⋮" FontSize="22" TextColor="#888"
+                           VerticalOptions="Center"/>
                 </Grid>
+            </Border>
 
-                <!-- Xe máy -->
-                <Border x:Name="MotoOptionBorder"
-                        BackgroundColor="{AppThemeBinding Dark=#13161F, Light=#F8F8F8}"
-                        StrokeThickness="2" Stroke="#00C853" Padding="14,12">
-                    <Border.StrokeShape><RoundRectangle CornerRadius="12"/></Border.StrokeShape>
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnMotoSelected"/>
-                    </Border.GestureRecognizers>
-                    <Grid ColumnDefinitions="Auto,*,Auto">
-                        <Label Text="🛵" FontSize="24" VerticalOptions="Center"/>
-                        <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
-                            <Label Text="Xe máy" FontSize="15" FontAttributes="Bold"
-                                   TextColor="{AppThemeBinding Dark=White, Light=#111}"/>
-                            <Label x:Name="MotoEtaLabel" Text="" TextColor="#8A8FA3" FontSize="12"/>
-                        </VerticalStackLayout>
-                        <Label x:Name="MotoPriceLabel" Grid.Column="2" Text=""
-                               TextColor="#00C853" FontSize="15" FontAttributes="Bold"
-                               VerticalOptions="Center"/>
-                    </Grid>
+            <!-- Nút xác nhận điểm đón -->
+            <Button Grid.Row="3" Text="Chọn điểm đón này"
+                    BackgroundColor="#00B14F" TextColor="White"
+                    FontAttributes="Bold" FontSize="16"
+                    HeightRequest="56" CornerRadius="28"
+                    Margin="16,4,16,20"
+                    Clicked="OnConfirmPickupClicked"/>
+
+        </Grid>
+
+        <!-- ════════════════════════════════════════════════ -->
+        <!--        PANEL TUYẾN ĐƯỜNG + CHỌN LOẠI XE        -->
+        <!-- ════════════════════════════════════════════════ -->
+        <Grid x:Name="RouteVehiclePanel" IsVisible="False"
+              RowDefinitions="*,Auto">
+
+            <!-- Bản đồ Google Maps tuyến đường -->
+            <Grid Grid.Row="0">
+                <WebView x:Name="RouteMapView"
+                         VerticalOptions="FillAndExpand"
+                         HorizontalOptions="FillAndExpand"/>
+
+                <!-- Thông tin tuyến đường (overlay) -->
+                <Border HorizontalOptions="Center" VerticalOptions="Start" Margin="0,56,0,0"
+                        BackgroundColor="White" StrokeThickness="0" Padding="14,6">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="20"/></Border.StrokeShape>
+                    <Label x:Name="RouteInfoLabel" Text=""
+                           TextColor="#111" FontSize="12" FontAttributes="Bold"/>
                 </Border>
 
-                <!-- Ô tô 4 chỗ -->
-                <Border x:Name="Car4OptionBorder"
-                        BackgroundColor="{AppThemeBinding Dark=#13161F, Light=#F8F8F8}"
-                        StrokeThickness="2" Stroke="#2E3348" Padding="14,12">
-                    <Border.StrokeShape><RoundRectangle CornerRadius="12"/></Border.StrokeShape>
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnCar4Selected"/>
-                    </Border.GestureRecognizers>
-                    <Grid ColumnDefinitions="Auto,*,Auto">
-                        <Label Text="🚗" FontSize="24" VerticalOptions="Center"/>
-                        <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
-                            <Label Text="Ô tô 4 chỗ" FontSize="15" FontAttributes="Bold"
-                                   TextColor="{AppThemeBinding Dark=White, Light=#111}"/>
-                            <Label x:Name="Car4EtaLabel" Text="" TextColor="#8A8FA3" FontSize="12"/>
-                        </VerticalStackLayout>
-                        <Label x:Name="Car4PriceLabel" Grid.Column="2" Text=""
-                               TextColor="#00C853" FontSize="15" FontAttributes="Bold"
-                               VerticalOptions="Center"/>
+                <!-- Nút quay lại -->
+                <Button Text="←" FontSize="18" BackgroundColor="White" TextColor="#111"
+                        WidthRequest="40" HeightRequest="40" CornerRadius="20"
+                        HorizontalOptions="Start" VerticalOptions="Start"
+                        Margin="12,40,0,0" Padding="0"
+                        Clicked="OnBackFromVehicle"/>
+            </Grid>
+
+            <!-- BottomSheet danh sách xe -->
+            <Border Grid.Row="1" BackgroundColor="White"
+                    StrokeThickness="1" Stroke="#E8E8E8">
+                <Border.StrokeShape><RoundRectangle CornerRadius="20,20,0,0"/></Border.StrokeShape>
+                <VerticalStackLayout>
+
+                    <!-- Drag handle -->
+                    <BoxView WidthRequest="40" HeightRequest="4" BackgroundColor="#DDD"
+                             CornerRadius="2" HorizontalOptions="Center" Margin="0,10,0,8"/>
+
+                    <!-- Tóm tắt tuyến đường -->
+                    <Grid ColumnDefinitions="Auto,*" Margin="16,0,16,4" ColumnSpacing="8">
+                        <Ellipse Grid.Column="0" Fill="#2196F3"
+                                 WidthRequest="8" HeightRequest="8" VerticalOptions="Center"/>
+                        <Label Grid.Column="1" x:Name="RoutePickupLabel" Text=""
+                               TextColor="#111" FontSize="13" FontAttributes="Bold"
+                               VerticalOptions="Center" LineBreakMode="TailTruncation"/>
                     </Grid>
-                </Border>
-
-                <!-- Ô tô 7 chỗ -->
-                <Border x:Name="Car7OptionBorder"
-                        BackgroundColor="{AppThemeBinding Dark=#13161F, Light=#F8F8F8}"
-                        StrokeThickness="2" Stroke="#2E3348" Padding="14,12">
-                    <Border.StrokeShape><RoundRectangle CornerRadius="12"/></Border.StrokeShape>
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnCar7Selected"/>
-                    </Border.GestureRecognizers>
-                    <Grid ColumnDefinitions="Auto,*,Auto">
-                        <Label Text="🚐" FontSize="24" VerticalOptions="Center"/>
-                        <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
-                            <Label Text="Ô tô 7 chỗ" FontSize="15" FontAttributes="Bold"
-                                   TextColor="{AppThemeBinding Dark=White, Light=#111}"/>
-                            <Label x:Name="Car7EtaLabel" Text="" TextColor="#8A8FA3" FontSize="12"/>
-                        </VerticalStackLayout>
-                        <Label x:Name="Car7PriceLabel" Grid.Column="2" Text=""
-                               TextColor="#00C853" FontSize="15" FontAttributes="Bold"
-                               VerticalOptions="Center"/>
+                    <Grid ColumnDefinitions="Auto,*" Margin="16,0,16,8" ColumnSpacing="8">
+                        <Label Grid.Column="0" Text="🏁" FontSize="11" VerticalOptions="Center"/>
+                        <Label Grid.Column="1" x:Name="RouteDropoffLabel" Text=""
+                               TextColor="#888" FontSize="13"
+                               VerticalOptions="Center" LineBreakMode="TailTruncation"/>
                     </Grid>
-                </Border>
 
-                <!-- Tóm tắt xe đã chọn + ETA đón (AC-03, FR-04) -->
-                <Border x:Name="SelectedVehicleSummary"
-                        BackgroundColor="{AppThemeBinding Dark=#0D1F0D, Light=#E8F5E9}"
-                        StrokeThickness="1" Stroke="#00C853" Padding="14,10">
-                    <Border.StrokeShape><RoundRectangle CornerRadius="10"/></Border.StrokeShape>
-                    <Grid ColumnDefinitions="*,*,*">
-                        <VerticalStackLayout HorizontalOptions="Center">
-                            <Label Text="Loại xe" TextColor="#4A5068" FontSize="11"
-                                   HorizontalOptions="Center"/>
-                            <Label x:Name="SelectedVehicleLabel" Text="Xe máy 🛵"
-                                   TextColor="#00C853" FontSize="13" FontAttributes="Bold"
-                                   HorizontalOptions="Center"/>
+                    <BoxView HeightRequest="1" BackgroundColor="#F0F0F0"/>
+
+                    <!-- Danh sách xe -->
+                    <ScrollView MaximumHeightRequest="300">
+                        <VerticalStackLayout Spacing="0">
+
+                            <!-- Xe máy -->
+                            <Border x:Name="MotoVehicleBorder" Margin="12,6,12,2"
+                                    Padding="14,12" StrokeThickness="2" Stroke="#00B14F"
+                                    BackgroundColor="#F0FFF5">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="14"/></Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnMotoSelected"/>
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="4">
+                                    <Label Grid.Column="0" Text="🛵" FontSize="34"
+                                           HorizontalOptions="Center" VerticalOptions="Center"/>
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="3">
+                                        <Label Text="Xe máy" FontSize="15" FontAttributes="Bold" TextColor="#111"/>
+                                        <HorizontalStackLayout Spacing="4">
+                                            <Label x:Name="MotoEtaLabel" Text="" TextColor="#666" FontSize="12"/>
+                                            <Label Text="•" TextColor="#CCC" FontSize="12"/>
+                                            <Label Text="👤 1" TextColor="#666" FontSize="12"/>
+                                        </HorizontalStackLayout>
+                                        <Border BackgroundColor="#E8F5E9" StrokeThickness="0" Padding="7,3">
+                                            <Border.StrokeShape><RoundRectangle CornerRadius="5"/></Border.StrokeShape>
+                                            <Label Text="Xe máy" TextColor="#00B14F" FontSize="11"/>
+                                        </Border>
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="2" x:Name="MotoPriceLabel" Text=""
+                                           TextColor="#111" FontSize="15" FontAttributes="Bold"
+                                           VerticalOptions="Center" HorizontalOptions="End"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Ô tô 4 chỗ -->
+                            <Border x:Name="Car4VehicleBorder" Margin="12,2,12,2"
+                                    Padding="14,12" StrokeThickness="1" Stroke="#E8E8E8"
+                                    BackgroundColor="White">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="14"/></Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnCar4Selected"/>
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="4">
+                                    <Label Grid.Column="0" Text="🚗" FontSize="34"
+                                           HorizontalOptions="Center" VerticalOptions="Center"/>
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="3">
+                                        <Label Text="Ô tô 4 chỗ" FontSize="15" FontAttributes="Bold" TextColor="#111"/>
+                                        <HorizontalStackLayout Spacing="4">
+                                            <Label x:Name="Car4EtaLabel" Text="" TextColor="#666" FontSize="12"/>
+                                            <Label Text="•" TextColor="#CCC" FontSize="12"/>
+                                            <Label Text="👤 4" TextColor="#666" FontSize="12"/>
+                                        </HorizontalStackLayout>
+                                        <Border BackgroundColor="#F5F5F5" StrokeThickness="0" Padding="7,3">
+                                            <Border.StrokeShape><RoundRectangle CornerRadius="5"/></Border.StrokeShape>
+                                            <Label Text="4 chỗ" TextColor="#666" FontSize="11"/>
+                                        </Border>
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="2" x:Name="Car4PriceLabel" Text=""
+                                           TextColor="#111" FontSize="15" FontAttributes="Bold"
+                                           VerticalOptions="Center" HorizontalOptions="End"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Ô tô 7 chỗ -->
+                            <Border x:Name="Car7VehicleBorder" Margin="12,2,12,6"
+                                    Padding="14,12" StrokeThickness="1" Stroke="#E8E8E8"
+                                    BackgroundColor="White">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="14"/></Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnCar7Selected"/>
+                                </Border.GestureRecognizers>
+                                <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="4">
+                                    <Label Grid.Column="0" Text="🚐" FontSize="34"
+                                           HorizontalOptions="Center" VerticalOptions="Center"/>
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="3">
+                                        <Label Text="Ô tô 7 chỗ" FontSize="15" FontAttributes="Bold" TextColor="#111"/>
+                                        <HorizontalStackLayout Spacing="4">
+                                            <Label x:Name="Car7EtaLabel" Text="" TextColor="#666" FontSize="12"/>
+                                            <Label Text="•" TextColor="#CCC" FontSize="12"/>
+                                            <Label Text="👤 6" TextColor="#666" FontSize="12"/>
+                                        </HorizontalStackLayout>
+                                        <Border BackgroundColor="#F5F5F5" StrokeThickness="0" Padding="7,3">
+                                            <Border.StrokeShape><RoundRectangle CornerRadius="5"/></Border.StrokeShape>
+                                            <Label Text="Ô tô" TextColor="#666" FontSize="11"/>
+                                        </Border>
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="2" x:Name="Car7PriceLabel" Text=""
+                                           TextColor="#111" FontSize="15" FontAttributes="Bold"
+                                           VerticalOptions="Center" HorizontalOptions="End"/>
+                                </Grid>
+                            </Border>
+
                         </VerticalStackLayout>
-                        <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
-                            <Label Text="Giá ước tính" TextColor="#4A5068" FontSize="11"
-                                   HorizontalOptions="Center"/>
-                            <Label x:Name="SelectedFareLabel" Text=""
-                                   TextColor="{AppThemeBinding Dark=White, Light=#111}"
-                                   FontSize="13" FontAttributes="Bold" HorizontalOptions="Center"/>
-                        </VerticalStackLayout>
-                        <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center">
-                            <Label Text="Tài xế đến đón" TextColor="#4A5068" FontSize="11"
-                                   HorizontalOptions="Center"/>
-                            <Label x:Name="SelectedEtaLabel" Text=""
-                                   TextColor="{AppThemeBinding Dark=White, Light=#111}"
-                                   FontSize="13" FontAttributes="Bold" HorizontalOptions="Center"/>
-                        </VerticalStackLayout>
+                    </ScrollView>
+
+                    <!-- Thanh dưới: Hủy + Đặt xe -->
+                    <BoxView HeightRequest="1" BackgroundColor="#F0F0F0"/>
+                    <Grid ColumnDefinitions="*,2*" Padding="16,12,16,20" ColumnSpacing="10">
+                        <Button Grid.Column="0" Text="Hủy"
+                                BackgroundColor="#F0F0F0" TextColor="#333"
+                                FontAttributes="Bold" FontSize="15"
+                                HeightRequest="52" CornerRadius="26"
+                                Clicked="OnCancelVehicleSelection"/>
+                        <Button Grid.Column="1" x:Name="ConfirmBookingButton"
+                                Text="Đặt xe"
+                                BackgroundColor="#00B14F" TextColor="White"
+                                FontAttributes="Bold" FontSize="15"
+                                HeightRequest="52" CornerRadius="26"
+                                Clicked="OnConfirmBookingClicked"/>
                     </Grid>
-                </Border>
 
-                <Button x:Name="ConfirmBookingButton"
-                        Text="Xác nhận đặt cuốc"
-                        BackgroundColor="#00C853"
-                        TextColor="White" FontAttributes="Bold" FontSize="16"
-                        CornerRadius="14" HeightRequest="52"
-                        Clicked="OnConfirmBookingClicked"/>
+                </VerticalStackLayout>
+            </Border>
 
-            </VerticalStackLayout>
-        </Border>
+        </Grid>
 
-        <!-- PANEL 3: Đang tìm tài xế (Giai đoạn 3-4, ngoại lệ 6.1, 6.3) -->
-        <Border x:Name="SearchingPanel" Grid.Row="2" IsVisible="False"
-                BackgroundColor="{AppThemeBinding Dark=#1C1F2E, Light=White}"
-                StrokeThickness="0" Padding="20,20,20,36">
-            <VerticalStackLayout Spacing="14" HorizontalOptions="Center">
+        <!-- ════════════════════════════════════════════════ -->
+        <!--              PANEL ĐANG TÌM TÀI XẾ             -->
+        <!-- ════════════════════════════════════════════════ -->
+        <Grid x:Name="SearchingDriverPanel" IsVisible="False" BackgroundColor="White">
+            <VerticalStackLayout Spacing="18" HorizontalOptions="Center"
+                                 VerticalOptions="Center" Margin="32,0">
 
-                <BoxView WidthRequest="40" HeightRequest="4" BackgroundColor="#3E4258"
-                         HorizontalOptions="Center" CornerRadius="2"/>
-
-                <ActivityIndicator x:Name="SearchingIndicator" IsRunning="True"
-                                   Color="#00C853" HeightRequest="40"/>
+                <ActivityIndicator x:Name="SearchingIndicator" IsRunning="False"
+                                   Color="#00B14F" HeightRequest="52"/>
 
                 <Label Text="Đang tìm tài xế phù hợp..."
-                       TextColor="{AppThemeBinding Dark=White, Light=#111}"
-                       FontSize="17" FontAttributes="Bold"
+                       TextColor="#111" FontSize="18" FontAttributes="Bold"
                        HorizontalOptions="Center"/>
 
-                <Label x:Name="SearchingStatusLabel"
-                       Text="Hệ thống đang ghép cuốc..."
-                       TextColor="#8A8FA3" FontSize="13"
-                       HorizontalOptions="Center"/>
+                <Label x:Name="SearchingStatusLabel" Text=""
+                       TextColor="#888" FontSize="13"
+                       HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
 
-                <!-- Cảnh báo mất mạng (Exception 8.5) -->
                 <Border x:Name="SearchNetworkWarning" IsVisible="False"
-                        BackgroundColor="#2A1A1A" StrokeThickness="1" Stroke="#FF5252"
-                        Padding="10,8">
+                        BackgroundColor="#FFF3F3" StrokeThickness="1" Stroke="#FF5252"
+                        Padding="14,10">
                     <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
                     <Label Text="⚠️ Mất kết nối — đang thử kết nối lại..."
                            TextColor="#FF5252" FontSize="12" HorizontalOptions="Center"/>
                 </Border>
 
                 <Button Text="Hủy cuốc"
-                        BackgroundColor="#C62828" TextColor="White"
-                        FontAttributes="Bold" CornerRadius="14" HeightRequest="50"
+                        BackgroundColor="#FF5252" TextColor="White"
+                        FontAttributes="Bold" FontSize="15"
+                        HeightRequest="52" CornerRadius="26"
+                        WidthRequest="200"
                         Clicked="OnCancelTripClicked"/>
 
             </VerticalStackLayout>
-        </Border>
+        </Grid>
 
-        <!-- PANEL 4: Chuyến đi đang diễn ra (Giai đoạn 5-8) -->
-        <Border x:Name="ActiveTripPanel" Grid.Row="2" IsVisible="False"
-                BackgroundColor="{AppThemeBinding Dark=#1C1F2E, Light=White}"
-                StrokeThickness="0" Padding="20,16,20,28">
-            <VerticalStackLayout Spacing="12">
+        <!-- ════════════════════════════════════════════════ -->
+        <!--              PANEL CHUYẾN ĐI ĐANG DIỄN RA      -->
+        <!-- ════════════════════════════════════════════════ -->
+        <Grid x:Name="ActiveTripPanel" IsVisible="False"
+              RowDefinitions="*,Auto" BackgroundColor="White">
 
-                <BoxView WidthRequest="40" HeightRequest="4" BackgroundColor="#3E4258"
-                         HorizontalOptions="Center" CornerRadius="2"/>
+            <!-- Bản đồ Google Maps chuyến đang chạy -->
+            <WebView x:Name="ActiveTripMapView" Grid.Row="0"/>
 
-                <Label x:Name="TripStatusLabel"
-                       Text="● Đang tìm tài xế"
-                       TextColor="#FFC107" FontSize="14" FontAttributes="Bold"/>
+            <!-- Panel thông tin chuyến đi -->
+            <Border Grid.Row="1" BackgroundColor="White"
+                    StrokeThickness="1" Stroke="#E8E8E8"
+                    Padding="16,12,16,24">
+                <Border.StrokeShape><RoundRectangle CornerRadius="20,20,0,0"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
 
-                <!-- Thông tin tài xế (hiện sau khi tài xế nhận cuốc) -->
-                <Border x:Name="DriverInfoCard" IsVisible="False"
-                        BackgroundColor="{AppThemeBinding Dark=#13161F, Light=#F5F5F5}"
-                        StrokeThickness="0" Padding="14,12">
-                    <Border.StrokeShape><RoundRectangle CornerRadius="12"/></Border.StrokeShape>
-                    <Grid ColumnDefinitions="Auto,*">
-                        <Border BackgroundColor="#00C853" StrokeThickness="0"
-                                WidthRequest="44" HeightRequest="44">
-                            <Border.StrokeShape><RoundRectangle CornerRadius="22"/></Border.StrokeShape>
-                            <Label x:Name="TripDriverInitial" Text="T"
-                                   TextColor="White" FontSize="18" FontAttributes="Bold"
-                                   HorizontalOptions="Center" VerticalOptions="Center"/>
-                        </Border>
-                        <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
-                            <Label x:Name="TripDriverName" Text=""
-                                   TextColor="{AppThemeBinding Dark=White, Light=#111}"
-                                   FontSize="15" FontAttributes="Bold"/>
-                            <Label x:Name="TripDriverPlate" Text=""
-                                   TextColor="#8A8FA3" FontSize="13"/>
-                        </VerticalStackLayout>
-                    </Grid>
-                </Border>
+                    <!-- Drag handle -->
+                    <BoxView WidthRequest="40" HeightRequest="4" BackgroundColor="#DDD"
+                             CornerRadius="2" HorizontalOptions="Center"/>
 
-                <!-- ETA tài xế đến đón realtime (AC-06, FR-07) -->
-                <Border x:Name="DriverEtaBanner" IsVisible="False"
-                        BackgroundColor="{AppThemeBinding Dark=#0D1F0D, Light=#E8F5E9}"
-                        StrokeThickness="1" Stroke="#00C853" Padding="12,8">
-                    <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
-                    <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
-                        <Label Text="🚗" FontSize="14" VerticalOptions="Center"/>
-                        <Label x:Name="DriverEtaLabel"
-                               Text="Đang cập nhật vị trí tài xế..."
-                               TextColor="#00C853" FontSize="13" FontAttributes="Bold"
+                    <!-- Trạng thái chuyến -->
+                    <Label x:Name="TripStatusLabel" Text="● Đang tìm tài xế"
+                           TextColor="#FFC107" FontSize="14" FontAttributes="Bold"/>
+
+                    <!-- Thông tin tài xế -->
+                    <Border x:Name="DriverInfoCard" IsVisible="False"
+                            BackgroundColor="#F8F8F8" StrokeThickness="0" Padding="12,10">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="12"/></Border.StrokeShape>
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Border Grid.Column="0" BackgroundColor="#00B14F" StrokeThickness="0"
+                                    WidthRequest="44" HeightRequest="44">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="22"/></Border.StrokeShape>
+                                <Label x:Name="TripDriverInitial" Text="T"
+                                       TextColor="White" FontSize="18" FontAttributes="Bold"
+                                       HorizontalOptions="Center" VerticalOptions="Center"/>
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                <Label x:Name="TripDriverName" Text=""
+                                       TextColor="#111" FontSize="15" FontAttributes="Bold"/>
+                                <Label x:Name="TripDriverPlate" Text=""
+                                       TextColor="#888" FontSize="13"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+
+                    <!-- ETA tài xế đến -->
+                    <Border x:Name="DriverEtaBanner" IsVisible="False"
+                            BackgroundColor="#F0FFF5" StrokeThickness="1" Stroke="#00B14F"
+                            Padding="12,8">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                        <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                            <Label Text="🚗" FontSize="14" VerticalOptions="Center"/>
+                            <Label x:Name="DriverEtaLabel" Text=""
+                                   TextColor="#00B14F" FontSize="13" FontAttributes="Bold"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <!-- Điểm đón / Điểm đến -->
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto"
+                          RowSpacing="6" ColumnSpacing="10">
+                        <Ellipse Grid.Column="0" Fill="#2196F3"
+                                 WidthRequest="8" HeightRequest="8" VerticalOptions="Center"/>
+                        <Label Grid.Column="1" x:Name="TripPickupLabel" Text=""
+                               TextColor="#111" FontSize="13" FontAttributes="Bold"
                                VerticalOptions="Center"/>
-                    </HorizontalStackLayout>
-                </Border>
+                        <Label Grid.Row="1" Grid.Column="0" Text="🏁"
+                               FontSize="10" VerticalOptions="Center"/>
+                        <Label Grid.Row="1" Grid.Column="1" x:Name="TripDropoffLabel"
+                               Text="" TextColor="#888" FontSize="13"
+                               VerticalOptions="Center"/>
+                    </Grid>
 
-                <!-- Điểm đón / điểm đến -->
-                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" RowSpacing="4">
-                    <Label Text="📍" FontSize="13" VerticalOptions="Center"/>
-                    <Label x:Name="TripPickupLabel" Grid.Column="1"
-                           Text="" TextColor="{AppThemeBinding Dark=White, Light=#111}"
-                           FontSize="13" FontAttributes="Bold" VerticalOptions="Center"/>
-                    <Label Grid.Row="1" Text="🏁" FontSize="13" VerticalOptions="Center"/>
-                    <Label x:Name="TripDropoffLabel" Grid.Row="1" Grid.Column="1"
-                           Text="" TextColor="#8A8FA3" FontSize="13" VerticalOptions="Center"/>
-                </Grid>
+                    <!-- Cảnh báo mất mạng -->
+                    <Border x:Name="ActiveNetworkWarning" IsVisible="False"
+                            BackgroundColor="#FFF3F3" StrokeThickness="1" Stroke="#FF5252"
+                            Padding="12,8">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                        <Label Text="⚠️ Mất kết nối — tạm dừng cập nhật vị trí tài xế"
+                               TextColor="#FF5252" FontSize="12" HorizontalOptions="Center"/>
+                    </Border>
 
-                <!-- Cảnh báo mất mạng trong active trip (Exception 8.5) -->
-                <Border x:Name="ActiveNetworkWarning" IsVisible="False"
-                        BackgroundColor="#2A1A1A" StrokeThickness="1" Stroke="#FF5252"
-                        Padding="10,8">
-                    <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
-                    <Label Text="⚠️ Mất kết nối — tạm dừng cập nhật vị trí tài xế"
-                           TextColor="#FF5252" FontSize="12" HorizontalOptions="Center"/>
-                </Border>
+                </VerticalStackLayout>
+            </Border>
 
-            </VerticalStackLayout>
-        </Border>
+        </Grid>
 
     </Grid>
 </ContentPage>

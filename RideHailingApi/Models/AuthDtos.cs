@@ -30,4 +30,32 @@ namespace RideHailingApi.Models
         public string Phone { get; set; } = string.Empty;
         public string? NewPassword { get; set; }
     }
+    public class TripCancelRequest
+    {
+        public string? Reason { get; set; }
+    }
+
+    // Device token request for FCM registration
+    public class DeviceTokenRequest
+    {
+        public int UserId { get; set; }
+        public string DeviceToken { get; set; } = string.Empty;
+        public string Platform { get; set; } = string.Empty; // "android" | "ios"
+    }
+
+    public class RefreshTokenRequest
+    {
+        public string RefreshToken { get; set; } = string.Empty;
+    }
+
+    public class RatingRequest
+    {
+        public int Score { get; set; }       // 1–5
+        public string? Comment { get; set; }
+    }
+
+    public class LockRequest
+    {
+        public bool IsLocked { get; set; }
+    }
 }

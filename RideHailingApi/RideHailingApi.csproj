@@ -9,9 +9,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="MigrationTool\MigrationTool.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.0" />
+    <!-- Added for password hashing -->
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.2" />
+    <!-- Entity Framework Core: used for ScheduledTrips storage and migrations -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.7" />
   </ItemGroup>
 
 </Project>

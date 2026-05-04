@@ -85,10 +85,10 @@
                     </HorizontalStackLayout>
                 </Border>
 
-                <!-- Label Email -->
-                <Label Text="Email" TextColor="#8A8FA3" FontSize="13" Margin="4,0,0,0"/>
+                <!-- Label Tên đăng nhập -->
+                <Label Text="Tên đăng nhập" TextColor="#8A8FA3" FontSize="13" Margin="4,0,0,0"/>
 
-                <!-- Email Entry -->
+                <!-- Tên đăng nhập Entry -->
                 <Border BackgroundColor="#1C1F2E"
                         StrokeThickness="1"
                         Stroke="#2E3348"
@@ -96,11 +96,11 @@
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="12"/>
                     </Border.StrokeShape>
-                    <Entry x:Name="EmailEntry"
-                           Placeholder="Nhập email của bạn"
+                    <Entry x:Name="UserNameEntry"
+                           Placeholder="Nhập tên đăng nhập hoặc số điện thoại"
                            PlaceholderColor="#4A5068"
                            TextColor="White"
-                           Keyboard="Email"
+                           Keyboard="Default"
                            BackgroundColor="Transparent"
                            Margin="16,12"/>
                 </Border>

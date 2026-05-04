@@ -52,12 +52,12 @@ public partial class LoginPage : ContentPage
     // Xử lý nút Đăng nhập gọi API thật
     private async void OnLoginClicked(object sender, EventArgs e)
     {
-        var email    = EmailEntry.Text?.Trim();
+        var userName = UserNameEntry.Text?.Trim();
         var password = PasswordEntry.Text;
 
-        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
         {
-            ShowError("Vui lòng nhập email và mật khẩu.");
+            ShowError("Vui lòng nhập tên đăng nhập và mật khẩu.");
             return;
         }
 
@@ -65,7 +65,7 @@ public partial class LoginPage : ContentPage
         LoginButton.Text      = "Đang xác thực...";
         ErrorLabel.IsVisible  = false;
 
-        var result = await _apiService.LoginAsync(email, password);
+        var result = await _apiService.LoginAsync(userName, password);
 
         if (result.IsSuccess && result.Data != null)
         {
@@ -76,7 +76,6 @@ public partial class LoginPage : ContentPage
             Preferences.Set("userName",    result.Data.User.FullName);
             Preferences.Set("userRegion",  result.Data.User.RegisteredRegion);
 
-            // Health-check: tự động phát hiện Primary còn sống không → set isReadOnly
             await _apiService.CheckAndSetReadOnlyAsync();
 
             bool isDriver = DriverModeSwitch.IsToggled;
@@ -88,7 +87,6 @@ public partial class LoginPage : ContentPage
         }
         else if (result.IsReadOnlyMode)
         {
-            // Primary sập ngay cả login — vào app chế độ Read-Only
             Preferences.Set("isReadOnly", true);
             ReadOnlyBanner.IsVisible = true;
             bool isDriver = DriverModeSwitch.IsToggled;
@@ -97,10 +95,20 @@ public partial class LoginPage : ContentPage
         }
         else
         {
-            ShowError(result.ErrorMessage ?? "Email hoặc mật khẩu không đúng.");
-            LoginButton.IsEnabled = true;
-            LoginButton.Text      = "Đăng nhập";
+            var msg = result.ErrorMessage ?? "Tên đăng nhập hoặc mật khẩu không đúng.";
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(msg);
+                if (doc.RootElement.TryGetProperty("message", out var m))
+                    msg = m.GetString() ?? msg;
+                else if (doc.RootElement.TryGetProperty("error", out var e2))
+                    msg = e2.GetString() ?? msg;
+            }
+            catch { }
+            ShowError(msg);
         }
+        LoginButton.IsEnabled = true;
+        LoginButton.Text      = "Đăng nhập";
     }
 
     private void OnGoToRegisterClicked(object sender, EventArgs e)

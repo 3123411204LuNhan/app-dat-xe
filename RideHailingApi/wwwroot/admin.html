@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RideNow — Admin Failover Dashboard</title>
+<title>RideNow — Admin Dashboard</title>
 <style>
 :root {
   --bg: #0F1117; --card: #1C1F2E; --card2: #13161F;
@@ -30,13 +30,58 @@ header h1 span { color: var(--green); }
 .refresh-btn:hover { background: #3E4568; }
 .refresh-info { font-size: 12px; color: var(--muted); margin-right: 10px; }
 
+/* ── TABS ── */
+.tabs { display: flex; gap: 4px; background: var(--card2); border-bottom: 1px solid var(--border); padding: 0 24px; }
+.tab {
+  padding: 13px 20px; cursor: pointer; font-size: 14px; font-weight: 600;
+  color: var(--muted); border-bottom: 3px solid transparent; transition: color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.tab:hover { color: #fff; }
+.tab.active { color: var(--green); border-bottom-color: var(--green); }
+
 /* ── LAYOUT ── */
-main { max-width: 1080px; margin: 0 auto; padding: 28px 20px; }
+main { max-width: 1200px; margin: 0 auto; padding: 28px 20px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 section { margin-bottom: 30px; }
 .section-title {
   font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
   text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
 }
+
+/* ── KPI CARDS ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 24px; }
+@media(max-width:900px){ .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+@media(max-width:600px){ .kpi-grid { grid-template-columns: 1fr 1fr; } }
+.kpi-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px;
+}
+.kpi-label { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 8px; }
+.kpi-value { font-size: 26px; font-weight: 800; }
+.kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.kpi-green { color: var(--green); }
+.kpi-blue  { color: var(--blue); }
+.kpi-yellow{ color: var(--yellow); }
+.kpi-red   { color: var(--red); }
+.kpi-white { color: #fff; }
+
+/* ── REVENUE TABLE ── */
+.rev-table { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.rev-header {
+  display: grid; grid-template-columns: 70px 80px 1fr 110px;
+  gap: 12px; padding: 10px 18px; background: var(--card2);
+  font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase;
+}
+.rev-row {
+  display: grid; grid-template-columns: 70px 80px 1fr 110px;
+  gap: 12px; padding: 10px 18px; border-top: 1px solid var(--border);
+  font-size: 13px; align-items: center;
+}
+.rev-bar { height: 6px; background: #2E3348; border-radius: 3px; overflow: hidden; }
+.rev-bar-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width .4s; }
+.reg-south { background: #2D1020; color: #F48FB1; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+.reg-north { background: #102030; color: #81D4FA; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
 
 /* ── MODE BADGES ── */
 .mode-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
@@ -58,26 +103,18 @@ section { margin-bottom: 30px; }
 .server-card.state-active { border-color: var(--green); }
 .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
 .card-name { font-size: 14px; font-weight: 700; }
-.badge {
-  font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
-  letter-spacing: .5px;
-}
+.badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; letter-spacing: .5px; }
 .badge-p { background: #0D2E1A; color: var(--green); }
 .badge-r { background: #1A2035; color: #6C8EBF; }
-
 .status-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; font-size: 13px; }
 .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 .dot-g { background: var(--green); box-shadow: 0 0 5px #00C853aa; }
 .dot-r { background: var(--red);   box-shadow: 0 0 5px #FF5252aa; }
 .dot-y { background: var(--yellow); }
-.chip {
-  display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 600;
-  padding: 3px 10px; border-radius: 6px;
-}
+.chip { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px; }
 .chip-warn  { background: #2A2200; color: var(--yellow); }
 .chip-ok    { background: #0D2E1A; color: var(--green); }
 .chip-ro    { background: #1A1F35; color: #6C8EBF; }
-
 .toggle-btn {
   width: 100%; margin-top: 14px; padding: 9px; border: none; border-radius: 10px;
   font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity .15s, transform .1s;
@@ -90,10 +127,7 @@ section { margin-bottom: 30px; }
 /* ── TEST SECTION ── */
 .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media(max-width:700px){ .test-grid { grid-template-columns: 1fr; } }
-.test-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 16px; padding: 20px;
-}
+.test-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
 .test-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
 .test-card p  { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
 .btn-row { display: flex; gap: 10px; }
@@ -105,55 +139,82 @@ section { margin-bottom: 30px; }
 .test-btn:disabled { opacity: .35; cursor: not-allowed; }
 .btn-write { background: var(--red);  color: #fff; }
 .btn-read  { background: var(--blue); color: #fff; }
-
-.result {
-  margin-top: 12px; padding: 11px 14px; border-radius: 10px;
-  background: var(--card2); font-size: 12px; line-height: 1.7;
-  white-space: pre-wrap; display: none;
-}
+.result { margin-top: 12px; padding: 11px 14px; border-radius: 10px; background: var(--card2); font-size: 12px; line-height: 1.7; white-space: pre-wrap; display: none; }
 .result.show { display: block; }
 .r-ok   { color: var(--green); }
 .r-warn { color: var(--yellow); }
 .r-err  { color: var(--red); }
 
 /* ── LOG ── */
-.log-box {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 16px; overflow: hidden;
-  max-height: 300px; overflow-y: auto;
-}
-.log-row {
-  display: grid; grid-template-columns: 76px 72px 1fr;
-  gap: 12px; padding: 9px 18px; border-bottom: 1px solid var(--border);
-  font-size: 12px; align-items: center;
-}
+.log-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; max-height: 300px; overflow-y: auto; }
+.log-row { display: grid; grid-template-columns: 76px 72px 1fr; gap: 12px; padding: 9px 18px; border-bottom: 1px solid var(--border); font-size: 12px; align-items: center; }
 .log-row:last-child { border-bottom: none; }
 .log-time { color: var(--muted); font-family: monospace; }
 .log-reg  { font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 4px; text-align: center; }
-.reg-south { background: #2D1020; color: #F48FB1; }
-.reg-north { background: #102030; color: #81D4FA; }
 .log-msg  { color: #C8CDDC; }
 .log-empty { padding: 28px; text-align: center; color: var(--muted); font-size: 13px; }
+
+/* ── MANAGEMENT TABLES ── */
+.mgmt-toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.search-input {
+  flex: 1; min-width: 200px; background: var(--card); border: 1px solid var(--border);
+  color: #fff; padding: 9px 14px; border-radius: 10px; font-size: 13px; outline: none;
+}
+.search-input:focus { border-color: var(--blue); }
+.region-select {
+  background: var(--card); border: 1px solid var(--border); color: #fff;
+  padding: 9px 14px; border-radius: 10px; font-size: 13px; cursor: pointer; outline: none;
+}
+.search-btn {
+  background: var(--blue); color: #fff; border: none; padding: 9px 20px;
+  border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.data-table { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; width: 100%; }
+.data-table table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  background: var(--card2); padding: 10px 14px; text-align: left;
+  font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+}
+.data-table td { padding: 11px 14px; font-size: 13px; border-top: 1px solid var(--border); }
+.data-table tr:hover td { background: #1e2235; }
+.lock-btn {
+  padding: 5px 14px; border: none; border-radius: 8px;
+  font-size: 12px; font-weight: 700; cursor: pointer; transition: opacity .15s;
+}
+.lock-btn:active { opacity: .7; }
+.btn-lock   { background: var(--red);   color: #fff; }
+.btn-unlock { background: var(--green); color: #111; }
+.status-locked   { color: var(--red);   font-weight: 700; }
+.status-unlocked { color: var(--green); font-weight: 700; }
+.empty-row td { text-align: center; color: var(--muted); padding: 28px; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1><div class="pulse"></div>🚗 <span>RideNow</span> &nbsp;Admin — Failover Dashboard</h1>
-  <div style="display:flex;align-items:center">
+  <h1><div class="pulse"></div>🚗 <span>RideNow</span> &nbsp;Admin Dashboard</h1>
+  <div style="display:flex;align-items:center;gap:10px">
     <span class="refresh-info" id="timerLabel">Auto-refresh 3s</span>
-    <button class="refresh-btn" onclick="fetchStatus()">⟳ Refresh ngay</button>
+    <button class="refresh-btn" onclick="refreshCurrent()">⟳ Refresh</button>
   </div>
 </header>
 
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('failover')">📡 Failover</div>
+  <div class="tab" onclick="switchTab('analytics')">📊 Analytics</div>
+  <div class="tab" onclick="switchTab('users')">👤 Người dùng</div>
+  <div class="tab" onclick="switchTab('drivers')">🚗 Tài xế</div>
+</div>
+
 <main>
 
-  <!-- Mode badges -->
+<!-- ══════════════════ TAB: FAILOVER ══════════════════ -->
+<div class="tab-content active" id="tab-failover">
+
   <div class="mode-row" id="modeBadges">
     <span class="mode-badge mode-ok"><span>●</span> Đang tải...</span>
   </div>
 
-  <!-- 1. Server status -->
   <section>
     <div class="section-title">📡 Trạng thái máy chủ</div>
     <div class="server-grid" id="serverGrid">
@@ -161,37 +222,30 @@ section { margin-bottom: 30px; }
     </div>
   </section>
 
-  <!-- 2. Test read/write -->
   <section>
     <div class="section-title">🔬 Kiểm tra Read / Write</div>
     <div class="test-grid">
-
       <div class="test-card">
         <h3>🏙 Miền Nam &nbsp;<small style="color:var(--muted);font-weight:400;font-size:12px">(South)</small></h3>
-        <p>Thử <b>Ghi</b> → thất bại khi Primary sập (503).<br>
-           Thử <b>Đọc</b> → vẫn thành công từ Replica ✅</p>
+        <p>Thử <b>Ghi</b> → thất bại khi Primary sập (503).<br>Thử <b>Đọc</b> → vẫn thành công từ Replica ✅</p>
         <div class="btn-row">
           <button class="test-btn btn-write" onclick="testWrite('South')">✏ Test Ghi</button>
           <button class="test-btn btn-read"  onclick="testRead('South')">📖 Test Đọc</button>
         </div>
         <div class="result" id="res-South"></div>
       </div>
-
       <div class="test-card">
         <h3>🏔 Miền Bắc &nbsp;<small style="color:var(--muted);font-weight:400;font-size:12px">(North)</small></h3>
-        <p>Thử <b>Ghi</b> → thất bại khi Primary sập (503).<br>
-           Thử <b>Đọc</b> → vẫn thành công từ Replica ✅</p>
+        <p>Thử <b>Ghi</b> → thất bại khi Primary sập (503).<br>Thử <b>Đọc</b> → vẫn thành công từ Replica ✅</p>
         <div class="btn-row">
           <button class="test-btn btn-write" onclick="testWrite('North')">✏ Test Ghi</button>
           <button class="test-btn btn-read"  onclick="testRead('North')">📖 Test Đọc</button>
         </div>
         <div class="result" id="res-North"></div>
       </div>
-
     </div>
   </section>
 
-  <!-- 3. Event log -->
   <section>
     <div class="section-title">📋 Event Log</div>
     <div class="log-box" id="logBox">
@@ -199,10 +253,125 @@ section { margin-bottom: 30px; }
     </div>
   </section>
 
+</div>
+
+<!-- ══════════════════ TAB: ANALYTICS ══════════════════ -->
+<div class="tab-content" id="tab-analytics">
+
+  <section>
+    <div class="section-title">📈 KPIs tổng hợp</div>
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card"><div class="kpi-label">Tổng chuyến</div><div class="kpi-value kpi-white" id="k-trips">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Người dùng</div><div class="kpi-value kpi-blue" id="k-users">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Tài xế</div><div class="kpi-value kpi-green" id="k-drivers">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Doanh thu</div><div class="kpi-value kpi-yellow" id="k-revenue">—</div><div class="kpi-sub">chuyến hoàn thành</div></div>
+      <div class="kpi-card"><div class="kpi-label">Tỷ lệ hủy</div><div class="kpi-value kpi-red" id="k-cancel">—</div><div class="kpi-sub" id="k-cancel-sub"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="section-title" style="margin:0">💰 Doanh thu theo ngày</div>
+      <select class="region-select" id="revRegion" onchange="loadRevenue()">
+        <option value="South">Miền Nam</option>
+        <option value="North">Miền Bắc</option>
+      </select>
+    </div>
+    <div class="rev-table">
+      <div class="rev-header">
+        <span>Ngày</span><span>Vùng</span><span>Biểu đồ</span><span>Doanh thu</span>
+      </div>
+      <div id="revBody">
+        <div class="log-empty">Đang tải...</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ══════════════════ TAB: USERS ══════════════════ -->
+<div class="tab-content" id="tab-users">
+
+  <section>
+    <div class="section-title">👤 Quản lý người dùng</div>
+    <div class="mgmt-toolbar">
+      <input class="search-input" id="userSearch" placeholder="Tìm theo tên, username..." onkeydown="if(event.key==='Enter')loadUsers()"/>
+      <select class="region-select" id="userRegion">
+        <option value="South">Miền Nam</option>
+        <option value="North">Miền Bắc</option>
+      </select>
+      <button class="search-btn" onclick="loadUsers()">🔍 Tìm</button>
+    </div>
+    <div class="data-table">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Username</th><th>Họ tên</th><th>Điện thoại</th>
+            <th>Vùng</th><th>Trạng thái</th><th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="usersBody">
+          <tr class="empty-row"><td colspan="7">Nhấn Tìm để tải danh sách</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<!-- ══════════════════ TAB: DRIVERS ══════════════════ -->
+<div class="tab-content" id="tab-drivers">
+
+  <section>
+    <div class="section-title">🚗 Quản lý tài xế</div>
+    <div class="mgmt-toolbar">
+      <input class="search-input" id="driverSearch" placeholder="Tìm theo tên, SĐT..." onkeydown="if(event.key==='Enter')loadDrivers()"/>
+      <select class="region-select" id="driverRegion">
+        <option value="South">Miền Nam</option>
+        <option value="North">Miền Bắc</option>
+      </select>
+      <button class="search-btn" onclick="loadDrivers()">🔍 Tìm</button>
+    </div>
+    <div class="data-table">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Họ tên</th><th>Điện thoại</th>
+            <th>Tổng chuyến</th><th>Doanh thu</th><th>Trạng thái</th><th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="driversBody">
+          <tr class="empty-row"><td colspan="7">Nhấn Tìm để tải danh sách</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
 </main>
 
 <script>
-// ── fetch status ──────────────────────────────────────────────
+// ── Tab Navigation ────────────────────────────────────
+let currentTab = 'failover';
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelectorAll('.tab')[['failover','analytics','users','drivers'].indexOf(tab)].classList.add('active');
+  currentTab = tab;
+  if (tab === 'analytics') { loadKpis(); loadRevenue(); }
+}
+
+function refreshCurrent() {
+  if (currentTab === 'failover') fetchStatus();
+  else if (currentTab === 'analytics') { loadKpis(); loadRevenue(); }
+  else if (currentTab === 'users') loadUsers();
+  else if (currentTab === 'drivers') loadDrivers();
+}
+
+// ── FAILOVER ─────────────────────────────────────────
 async function fetchStatus() {
   try {
     const r = await fetch('/api/admin/status');
@@ -210,12 +379,9 @@ async function fetchStatus() {
     renderBadges(d.servers);
     renderGrid(d.servers);
     renderLog(d.logs);
-  } catch(e) {
-    console.warn('fetch error', e);
-  }
+  } catch(e) { console.warn('fetch error', e); }
 }
 
-// ── mode badges ───────────────────────────────────────────────
 function renderBadges(servers) {
   document.getElementById('modeBadges').innerHTML = servers.map(s => {
     const down = s.primarySimulated || !s.primaryReal;
@@ -226,98 +392,54 @@ function renderBadges(servers) {
   }).join('');
 }
 
-// ── server grid ───────────────────────────────────────────────
 function renderGrid(servers) {
   let html = '';
   for (const s of servers) {
     const pDown = s.primarySimulated || !s.primaryReal;
-
-    // Primary card
     html += `
     <div class="server-card ${pDown ? 'state-down' : 'state-active'}">
-      <div class="card-top">
-        <span class="card-name">${s.region} Primary</span>
-        <span class="badge badge-p">PRIMARY</span>
-      </div>
-
-      <div class="status-row">
-        <div class="dot ${s.primaryReal ? 'dot-g' : 'dot-r'}"></div>
-        <span>DB thực: ${s.primaryReal ? 'Kết nối OK' : 'Không phản hồi'}</span>
-      </div>
-      <div class="status-row">
-        <div class="dot ${s.primarySimulated ? 'dot-r' : 'dot-g'}"></div>
-        <span>Giả lập: ${s.primarySimulated ? 'Đang SẬP' : 'Hoạt động'}</span>
-      </div>
-      ${pDown
-        ? '<span class="chip chip-warn">⚠ App đang dùng Replica</span>'
-        : '<span class="chip chip-ok">✅ Đang phục vụ bình thường</span>'}
-
-      <button class="toggle-btn ${s.primarySimulated ? 'btn-green' : 'btn-red'}"
-              onclick="togglePrimary('${s.region}', ${s.primarySimulated})">
+      <div class="card-top"><span class="card-name">${s.region} Primary</span><span class="badge badge-p">PRIMARY</span></div>
+      <div class="status-row"><div class="dot ${s.primaryReal ? 'dot-g' : 'dot-r'}"></div><span>DB thực: ${s.primaryReal ? 'Kết nối OK' : 'Không phản hồi'}</span></div>
+      <div class="status-row"><div class="dot ${s.primarySimulated ? 'dot-r' : 'dot-g'}"></div><span>Giả lập: ${s.primarySimulated ? 'Đang SẬP' : 'Hoạt động'}</span></div>
+      ${pDown ? '<span class="chip chip-warn">⚠ App đang dùng Replica</span>' : '<span class="chip chip-ok">✅ Đang phục vụ bình thường</span>'}
+      <button class="toggle-btn ${s.primarySimulated ? 'btn-green' : 'btn-red'}" onclick="togglePrimary('${s.region}', ${s.primarySimulated})">
         ${s.primarySimulated ? '✅ Khôi phục Primary' : '🔴 Giả lập Primary Sập'}
       </button>
-    </div>`;
-
-    // Replica card
-    html += `
+    </div>
     <div class="server-card ${pDown ? 'state-active' : ''}">
-      <div class="card-top">
-        <span class="card-name">${s.region} Replica</span>
-        <span class="badge badge-r">REPLICA</span>
-      </div>
-
-      <div class="status-row">
-        <div class="dot ${s.replicaReal ? 'dot-g' : 'dot-r'}"></div>
-        <span>DB thực: ${s.replicaReal ? 'Kết nối OK' : 'Không phản hồi'}</span>
-      </div>
-      <div class="status-row">
-        <div class="dot dot-y"></div>
-        <span>Chế độ: Read-Only</span>
-      </div>
-      ${pDown
-        ? '<span class="chip chip-ok">🟢 Đang phục vụ thay Primary</span>'
-        : '<span class="chip chip-ro">⏸ Standby (chờ failover)</span>'}
+      <div class="card-top"><span class="card-name">${s.region} Replica</span><span class="badge badge-r">REPLICA</span></div>
+      <div class="status-row"><div class="dot ${s.replicaReal ? 'dot-g' : 'dot-r'}"></div><span>DB thực: ${s.replicaReal ? 'Kết nối OK' : 'Không phản hồi'}</span></div>
+      <div class="status-row"><div class="dot dot-y"></div><span>Chế độ: Read-Only</span></div>
+      ${pDown ? '<span class="chip chip-ok">🟢 Đang phục vụ thay Primary</span>' : '<span class="chip chip-ro">⏸ Standby (chờ failover)</span>'}
     </div>`;
   }
   document.getElementById('serverGrid').innerHTML = html;
 }
 
-// ── toggle primary ────────────────────────────────────────────
 async function togglePrimary(region, isDown) {
   const action = isDown ? 'simulate-up' : 'simulate-down';
   await fetch(`/api/admin/${action}/${region}`, { method: 'POST' });
   await fetchStatus();
 }
 
-// ── test write ────────────────────────────────────────────────
 async function testWrite(region) {
-  const box = show(region, 'r-warn', '⏳ Đang thực hiện GHI vào Primary...');
+  show(region, 'r-warn', '⏳ Đang thực hiện GHI vào Primary...');
   const res = await fetch(`/api/admin/test-write/${region}`, { method: 'POST' });
   const d   = await res.json();
-  if (res.ok) {
-    show(region, 'r-ok',
-      `✅ GHI THÀNH CÔNG\n→ Nguồn: ${d.source}\n→ ${d.message}`);
-  } else {
-    show(region, 'r-err',
-      `❌ GHI THẤT BẠI (HTTP ${res.status})\n→ Primary không khả dụng\n→ ${d.message}`);
-  }
+  if (res.ok) show(region, 'r-ok', `✅ GHI THÀNH CÔNG\n→ Nguồn: ${d.source}\n→ ${d.message}`);
+  else show(region, 'r-err', `❌ GHI THẤT BẠI (HTTP ${res.status})\n→ Primary không khả dụng\n→ ${d.message}`);
   await fetchStatus();
 }
 
-// ── test read ─────────────────────────────────────────────────
 async function testRead(region) {
   show(region, 'r-warn', '⏳ Đang thực hiện ĐỌC...');
   const res = await fetch(`/api/admin/test-read/${region}`);
   const d   = await res.json();
   if (res.ok) {
     const isReplica = d.source === 'Replica';
-    show(region,
-      isReplica ? 'r-warn' : 'r-ok',
-      `${isReplica ? '⚠ ĐỌC TỪ REPLICA (Failover)' : '✅ ĐỌC TỪ PRIMARY'}\n→ Nguồn: ${d.source}\n→ ${d.rowCount} chuyến đi gần nhất`
-    );
-  } else {
-    show(region, 'r-err', `❌ ĐỌC THẤT BẠI\n→ ${d.message}`);
-  }
+    show(region, isReplica ? 'r-warn' : 'r-ok',
+      `${isReplica ? '⚠ ĐỌC TỪ REPLICA (Failover)' : '✅ ĐỌC TỪ PRIMARY'}\n→ Nguồn: ${d.source}\n→ ${d.rowCount} chuyến đi gần nhất`);
+  } else show(region, 'r-err', `❌ ĐỌC THẤT BẠI\n→ ${d.message}`);
   await fetchStatus();
 }
 
@@ -328,13 +450,9 @@ function show(region, cls, text) {
   return el;
 }
 
-// ── event log ─────────────────────────────────────────────────
 function renderLog(logs) {
   const box = document.getElementById('logBox');
-  if (!logs || !logs.length) {
-    box.innerHTML = '<div class="log-empty">Chưa có sự kiện...</div>';
-    return;
-  }
+  if (!logs || !logs.length) { box.innerHTML = '<div class="log-empty">Chưa có sự kiện...</div>'; return; }
   box.innerHTML = logs.map(l => {
     const t = new Date(l.time).toLocaleTimeString('vi-VN');
     const rCls = l.region.toLowerCase() === 'south' ? 'reg-south' : 'reg-north';
@@ -346,14 +464,138 @@ function renderLog(logs) {
   }).join('');
 }
 
-// ── auto refresh ──────────────────────────────────────────────
+// ── ANALYTICS ────────────────────────────────────────
+async function loadKpis() {
+  try {
+    const r = await fetch('/api/admin/dashboard/kpis');
+    const d = await r.json();
+    document.getElementById('k-trips').textContent   = d.totalTrips.toLocaleString('vi-VN');
+    document.getElementById('k-users').textContent   = d.totalUsers.toLocaleString('vi-VN');
+    document.getElementById('k-drivers').textContent = d.totalDrivers.toLocaleString('vi-VN');
+    document.getElementById('k-revenue').textContent = fmtVnd(d.totalRevenue);
+    document.getElementById('k-cancel').textContent  = d.cancelRate + '%';
+    document.getElementById('k-cancel-sub').textContent = `${d.cancelledTrips.toLocaleString('vi-VN')} chuyến hủy`;
+  } catch(e) { console.warn(e); }
+}
+
+async function loadRevenue() {
+  const region = document.getElementById('revRegion').value;
+  const body   = document.getElementById('revBody');
+  body.innerHTML = '<div class="log-empty">Đang tải...</div>';
+  try {
+    const r = await fetch(`/api/admin/dashboard/revenue?days=30`);
+    const rows = await r.json();
+    const filtered = rows.filter(x => x.region === region);
+    if (!filtered.length) { body.innerHTML = '<div class="log-empty">Không có dữ liệu</div>'; return; }
+    const maxRev = Math.max(...filtered.map(x => x.revenue), 1);
+    body.innerHTML = filtered.map(x => {
+      const pct = Math.round(x.revenue / maxRev * 100);
+      const rCls = region === 'South' ? 'reg-south' : 'reg-north';
+      return `<div class="rev-row">
+        <span style="font-family:monospace;font-size:12px">${x.day.slice(5)}</span>
+        <span class="${rCls}">${x.region}</span>
+        <div class="rev-bar"><div class="rev-bar-fill" style="width:${pct}%"></div></div>
+        <span style="font-weight:700;color:var(--green)">${fmtVnd(x.revenue)}</span>
+      </div>`;
+    }).join('');
+  } catch(e) { body.innerHTML = '<div class="log-empty">Lỗi tải dữ liệu</div>'; }
+}
+
+function fmtVnd(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(1) + ' tỷ';
+  if (n >= 1e6) return (n/1e6).toFixed(1) + ' tr';
+  return n.toLocaleString('vi-VN') + 'đ';
+}
+
+// ── USERS ────────────────────────────────────────────
+async function loadUsers() {
+  const search = document.getElementById('userSearch').value;
+  const region = document.getElementById('userRegion').value;
+  const tbody  = document.getElementById('usersBody');
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Đang tải...</td></tr>';
+  try {
+    const r    = await fetch(`/api/admin/users?search=${encodeURIComponent(search)}&region=${region}`);
+    const data = await r.json();
+    if (!data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Không tìm thấy người dùng nào</td></tr>'; return; }
+    tbody.innerHTML = data.map(u => `
+      <tr>
+        <td style="color:var(--muted)">${u.userId}</td>
+        <td style="font-weight:600">${u.userName}</td>
+        <td>${u.fullName || '—'}</td>
+        <td style="font-family:monospace">${u.phone || '—'}</td>
+        <td><span class="${u.region === 'South' ? 'reg-south' : 'reg-north'}">${u.region}</span></td>
+        <td class="${u.isLocked ? 'status-locked' : 'status-unlocked'}">${u.isLocked ? '🔒 Đã khóa' : '✅ Hoạt động'}</td>
+        <td>
+          <button class="lock-btn ${u.isLocked ? 'btn-unlock' : 'btn-lock'}"
+                  onclick="toggleUserLock(${u.userId}, '${u.region}', ${u.isLocked})">
+            ${u.isLocked ? '🔓 Mở khóa' : '🔒 Khóa'}
+          </button>
+        </td>
+      </tr>`).join('');
+  } catch(e) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Lỗi: ${e.message}</td></tr>`; }
+}
+
+async function toggleUserLock(userId, region, isLocked) {
+  try {
+    const r = await fetch(`/api/admin/users/${userId}/lock?region=${region}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isLocked: !isLocked })
+    });
+    if (r.ok) await loadUsers();
+    else alert('Không thể thay đổi trạng thái người dùng.');
+  } catch(e) { alert('Lỗi: ' + e.message); }
+}
+
+// ── DRIVERS ──────────────────────────────────────────
+async function loadDrivers() {
+  const search = document.getElementById('driverSearch').value;
+  const region = document.getElementById('driverRegion').value;
+  const tbody  = document.getElementById('driversBody');
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Đang tải...</td></tr>';
+  try {
+    const r    = await fetch(`/api/admin/drivers?search=${encodeURIComponent(search)}&region=${region}`);
+    const data = await r.json();
+    if (!data.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Không tìm thấy tài xế nào</td></tr>'; return; }
+    tbody.innerHTML = data.map(d => `
+      <tr>
+        <td style="color:var(--muted)">${d.driverId}</td>
+        <td style="font-weight:600">${d.fullName || '—'}</td>
+        <td style="font-family:monospace">${d.phone || '—'}</td>
+        <td>${d.totalTrips}</td>
+        <td style="color:var(--green);font-weight:700">${fmtVnd(d.totalEarnings)}</td>
+        <td class="${d.isLocked ? 'status-locked' : 'status-unlocked'}">${d.isLocked ? '🔒 Đã khóa' : '✅ Hoạt động'}</td>
+        <td>
+          <button class="lock-btn ${d.isLocked ? 'btn-unlock' : 'btn-lock'}"
+                  onclick="toggleDriverLock(${d.driverId}, '${region}', ${d.isLocked})">
+            ${d.isLocked ? '🔓 Mở khóa' : '🔒 Khóa'}
+          </button>
+        </td>
+      </tr>`).join('');
+  } catch(e) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Lỗi: ${e.message}</td></tr>`; }
+}
+
+async function toggleDriverLock(driverId, region, isLocked) {
+  try {
+    const r = await fetch(`/api/admin/drivers/${driverId}/lock?region=${region}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isLocked: !isLocked })
+    });
+    if (r.ok) await loadDrivers();
+    else alert('Không thể thay đổi trạng thái tài xế.');
+  } catch(e) { alert('Lỗi: ' + e.message); }
+}
+
+// ── AUTO REFRESH ─────────────────────────────────────
 fetchStatus();
-setInterval(fetchStatus, 3000);
+setInterval(() => { if (currentTab === 'failover') fetchStatus(); }, 3000);
 
 let cd = 3;
 setInterval(() => {
+  if (currentTab !== 'failover') { document.getElementById('timerLabel').textContent = ''; return; }
   cd = cd <= 1 ? 3 : cd - 1;
-  document.getElementById('timerLabel').textContent = `Auto-refresh ${cd}s &nbsp;`;
+  document.getElementById('timerLabel').textContent = `Auto-refresh ${cd}s`;
 }, 1000);
 </script>
 </body>
